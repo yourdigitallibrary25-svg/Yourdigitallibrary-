@@ -1,5 +1,13 @@
 import type { APIRoute } from "astro"
 
+export function getStaticPaths() {
+  return [
+    { params: { locale: "en" } },
+    { params: { locale: "ne" } },
+    { params: { locale: "de" } },
+  ]
+}
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData()
@@ -10,8 +18,6 @@ export const POST: APIRoute = async ({ request }) => {
     const format = formData.get("format")
     const bookFile = formData.get("bookFile")
 
-    // Here you can save the data to your database, file system, or content collection.
-    // For now, we will log it to your terminal to verify it works:
     console.log("New Book Received:", {
       title,
       author,

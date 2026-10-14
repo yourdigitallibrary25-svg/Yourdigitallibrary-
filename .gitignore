@@ -37,3 +37,4 @@ playwright/.cache/
 
 .pnpm-store
 lightnet-cli.json
+*.deb
