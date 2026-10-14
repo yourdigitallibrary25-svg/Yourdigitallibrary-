@@ -1,6 +1,1 @@
-backend:
-  name: github
-  repo: yourdigitallibrary25-svg/Yourdigitallibrary-
-  branch: main
-  base_url: https://sveltia-cms-auth.yourdigitallibrary25.workers.dev
-  local_backend: false
+
