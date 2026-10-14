@@ -72,6 +72,19 @@ const optimizedImage = {
 } as const
 
 function getBackend(): Backend {
+  // Force live Cloudflare OAuth worker for production/workers.dev domain
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname.includes("workers.dev")
+  ) {
+    return {
+      name: "github",
+      repo: "yourdigitallibrary25-svg/Yourdigitallibrary-",
+      branch: "main",
+      base_url: "https://sveltia-cms-auth.yourdigitallibrary25.workers.dev",
+    }
+  }
+
   const { backend } = adminConfig
 
   if (!backend) {
@@ -84,7 +97,7 @@ function getBackend(): Backend {
   if (backend.name === "github") {
     return {
       ...backend,
-      base_url: backend.baseUrl,
+      base_url: "https://sveltia-cms-auth.yourdigitallibrary25.workers.dev",
     }
   }
 
