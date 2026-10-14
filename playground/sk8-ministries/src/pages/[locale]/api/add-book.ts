@@ -1,5 +1,7 @@
 import type { APIRoute } from "astro"
 
+export const prerender = true
+
 export function getStaticPaths() {
   return [
     { params: { locale: "en" } },
@@ -16,7 +18,6 @@ export const POST: APIRoute = async ({ request }) => {
     const description = formData.get("description")
     const language = formData.get("language")
     const format = formData.get("format")
-    const bookFile = formData.get("bookFile")
 
     console.log("New Book Received:", {
       title,
