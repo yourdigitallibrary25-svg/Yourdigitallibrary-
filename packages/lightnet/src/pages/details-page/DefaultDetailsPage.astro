@@ -100,6 +100,11 @@ const targetUrl = `/${alternateLocale}/media/${alternateSlug}`
 
     if (!container || !viewer || !iframe) return
 
+    // Detect iOS devices (iPhone, iPad, iPod)
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+
     // Intercept Read button click
     const readLink = container.querySelector("a")
     if (readLink) {
@@ -110,6 +115,13 @@ const targetUrl = `/${alternateLocale}/media/${alternateSlug}`
           e.preventDefault()
 
           const cleanUrl = href.split("#")[0]
+
+          // On iOS, open PDF directly in a clean tab for native mobile scrolling/viewing
+          if (isIOS) {
+            window.open(cleanUrl, "_blank")
+            return
+          }
+
           const formattedUrl = `${cleanUrl}#view=FitH`
 
           if (iframe.src !== formattedUrl) {
