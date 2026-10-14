@@ -72,11 +72,10 @@ const optimizedImage = {
 } as const
 
 function getBackend(): Backend {
-  // Force live Cloudflare OAuth worker for production/workers.dev domain
-  if (
-    typeof window !== "undefined" &&
-    window.location.hostname.includes("workers.dev")
-  ) {
+  const { backend } = adminConfig
+
+  // If no backend is defined in adminConfig, force your live GitHub repository
+  if (!backend) {
     return {
       name: "github",
       repo: "yourdigitallibrary25-svg/Yourdigitallibrary-",
@@ -85,18 +84,11 @@ function getBackend(): Backend {
     }
   }
 
-  const { backend } = adminConfig
-
-  if (!backend) {
-    return {
-      name: "github",
-      repo: createLocalRepoPath(),
-    }
-  }
-
   if (backend.name === "github") {
     return {
       ...backend,
+      repo: "yourdigitallibrary25-svg/Yourdigitallibrary-",
+      branch: "main",
       base_url: "https://sveltia-cms-auth.yourdigitallibrary25.workers.dev",
     }
   }
@@ -108,7 +100,13 @@ function getBackend(): Backend {
       auth_type: backend.authType,
     }
   }
-  return backend
+
+  return {
+    name: "github",
+    repo: "yourdigitallibrary25-svg/Yourdigitallibrary-",
+    branch: "main",
+    base_url: "https://sveltia-cms-auth.yourdigitallibrary25.workers.dev",
+  }
 }
 
 // Sveltia CMS uses repo as unique site identifier for IndexedDB
