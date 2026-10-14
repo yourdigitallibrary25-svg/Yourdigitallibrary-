@@ -1,96 +1,46 @@
 ---
 interface Props {
   label: string
-  disabled?: boolean
 }
 
-const { label, disabled } = Astro.props
+const { label } = Astro.props
+const { t } = Astro.locals.i18n
 ---
 
-<ln-menu class="relative flex h-full items-center">
+<div class="relative inline-block text-left" id="main-menu-wrapper">
   <button
-    disabled={disabled}
-    aria-disabled={disabled}
-    aria-label={Astro.locals.i18n.t(label)}
-    class="flex rounded-md p-3 text-gray-600 hover:text-primary disabled:text-gray-300"
+    type="button"
+    id="main-menu-btn"
+    onclick="event.stopPropagation(); event.stopImmediatePropagation(); const d = document.getElementById('main-menu-dropdown'); if(d){ d.classList.toggle('hidden'); }"
+    class="flex items-center justify-center p-3 text-gray-600 hover:text-primary focus:outline-none dark:text-gray-300 dark:hover:text-white"
+    aria-label={t(label)}
+    aria-expanded="false"
   >
     <slot name="icon" />
   </button>
 
-  <ul
-    data-menu-panel
-    aria-hidden="true"
-    inert
-    class="pointer-events-none absolute end-3 top-full mt-px flex w-48 origin-top scale-y-90 flex-col overflow-hidden rounded-b-md bg-white py-3 opacity-0 shadow-lg transition-all duration-100 ease-out motion-reduce:transform-none motion-reduce:transition-none"
+  <div
+    id="main-menu-dropdown"
+    class="absolute right-0 z-50 mt-2 hidden w-48 rounded-lg border border-gray-200 bg-white py-1 text-gray-900 shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
   >
     <slot />
-  </ul>
-</ln-menu>
+  </div>
+</div>
+
 <script>
-  class Menu extends HTMLElement {
-    menuPanel = this.querySelector<HTMLElement>("[data-menu-panel]")!
-    isMenuOpened = false
-    reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
-    handleOutsideClick = (event: MouseEvent) => {
-      if (!this.isMenuOpened) {
-        return
+  const setupOutsideClick = () => {
+    document.addEventListener("click", (e) => {
+      const btn = document.getElementById("main-menu-btn")
+      const dropdown = document.getElementById("main-menu-dropdown")
+      if (!btn || !dropdown) return
+
+      const target = e.target as Node
+      if (!btn.contains(target) && !dropdown.contains(target)) {
+        dropdown.classList.add("hidden")
       }
-      const target = event.target as Node | null
-      if (target && this.contains(target)) {
-        return
-      }
-      this.closeMenu()
-    }
-
-    toggleMenu() {
-      if (this.isMenuOpened) {
-        this.closeMenu()
-      } else {
-        this.openMenu()
-      }
-    }
-
-    openMenu() {
-      if (this.isMenuOpened) {
-        return
-      }
-      this.menuPanel.style.opacity = "1"
-      this.menuPanel.style.pointerEvents = "auto"
-      this.menuPanel.style.transform = this.reducedMotionQuery.matches
-        ? ""
-        : "scaleY(1)"
-
-      this.menuPanel.setAttribute("aria-hidden", "false")
-      this.menuPanel.removeAttribute("inert")
-      document.addEventListener("click", this.handleOutsideClick)
-      this.isMenuOpened = true
-    }
-
-    closeMenu() {
-      if (!this.isMenuOpened) {
-        return
-      }
-      this.menuPanel.style.opacity = "0"
-      this.menuPanel.style.pointerEvents = "none"
-      this.menuPanel.style.transform = this.reducedMotionQuery.matches
-        ? ""
-        : "scaleY(0.9)"
-
-      this.menuPanel.setAttribute("aria-hidden", "true")
-      this.menuPanel.setAttribute("inert", "")
-      document.removeEventListener("click", this.handleOutsideClick)
-      this.isMenuOpened = false
-    }
-
-    connectedCallback() {
-      this.querySelector("button")?.addEventListener("click", () =>
-        this.toggleMenu(),
-      )
-
-      window.addEventListener("beforeunload", () => {
-        this.closeMenu()
-      })
-    }
+    })
   }
-  customElements.define("ln-menu", Menu)
+
+  setupOutsideClick()
+  document.addEventListener("astro:page-load", setupOutsideClick)
 </script>

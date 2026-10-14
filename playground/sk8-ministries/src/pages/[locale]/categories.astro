@@ -1,8 +1,111 @@
 ---
-import { CategoriesSection, Page } from "lightnet/components"
 export { getLocalePaths as getStaticPaths } from "lightnet/i18n"
+
+import { getCollection } from "astro:content"
+import { Page } from "lightnet/components"
+import { searchPagePath } from "lightnet/utils"
+
+const { currentLocale } = Astro.locals.i18n
+
+// 1. Define the exact categories to display, in order
+const targetCategories = [
+  "bible-studies",
+  "discipleship",
+  "children-books",
+  "support-and-counseling",
+  "educational",
+  "christian-living",
+  "hindi",
+  "theology",
+]
+
+// 2. Fetch raw categories collection
+const rawCategories = await getCollection("categories")
+
+// 3. Filter and retain ONLY the target categories in your specified order
+const sortedCategories = targetCategories
+  .map((id) =>
+    rawCategories.find((cat) => {
+      const cleanId = (cat.id || cat.slug || "").replace(/\.(json|md|mdx)$/, "")
+      return cleanId === id
+    }),
+  )
+  .filter(Boolean)
+
+// 4. Load category images dynamically
+const categoryImages = import.meta.glob<{ default: ImageMetadata | string }>(
+  "../../content/categories/**/*.{webp,png,jpg,jpeg}",
+  { eager: true },
+)
+
+const getCategoryImage = (imagePath: any) => {
+  if (!imagePath) return null
+  if (typeof imagePath === "object" && "src" in imagePath) return imagePath.src
+  const cleanPath = String(imagePath).replace(/^\//, "")
+  const fullKey = `../../content/categories/${cleanPath}`
+  const asset = categoryImages[fullKey]
+  return asset?.default?.src || asset?.default || asset || null
+}
+
+const categoryItems = sortedCategories.map((cat: any) => {
+  const cleanId = (cat.id || cat.slug || "").replace(/\.(json|md|mdx)$/, "")
+  const label =
+    cat.data?.label?.[currentLocale] || cat.data?.label?.en || cleanId
+
+  return {
+    id: cleanId,
+    label,
+    image: getCategoryImage(cat.data?.image),
+    href: searchPagePath(currentLocale, { category: cleanId }),
+  }
+})
 ---
 
 <Page>
-  <CategoriesSection layout="grid" marginTop="sm" />
+  <div class="w-full px-4 py-10 sm:px-6 lg:px-8">
+    <h1
+      class="mb-8 text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white"
+    >
+      Search by category
+    </h1>
+
+    <div
+      class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+    >
+      {
+        categoryItems.map((cat) => (
+          <a
+            href={cat.href}
+            class="group relative flex aspect-[1.15/1] w-full flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 p-4 shadow-sm transition-transform duration-200 hover:scale-[1.02]"
+          >
+            {cat.image && (
+              <img
+                src={cat.image}
+                alt={cat.label}
+                class="absolute inset-0 h-full w-full object-cover opacity-85 transition-opacity group-hover:opacity-100"
+              />
+            )}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+            <span class="relative z-10 text-sm font-bold tracking-wide text-white">
+              {cat.label}
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
 </Page>
+
+<style is:global>
+  footer a[href*="lightnet"],
+  footer [data-hide-lightnet="true"] {
+    display: none !important;
+  }
+
+  header a[href*="admin"],
+  header a[href*="lightnet"],
+  [role="menu"] a[href*="admin"],
+  [role="menu"] a[href*="lightnet"] {
+    display: none !important;
+  }
+</style>

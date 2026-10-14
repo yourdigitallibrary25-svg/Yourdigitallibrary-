@@ -1,0 +1,10 @@
+{
+  "label": {
+    "en": "App",
+    "de": "App"
+  },
+  "detailsPage": {
+    "layout": "default"
+  },
+  "icon": "lucide--smartphone"
+}

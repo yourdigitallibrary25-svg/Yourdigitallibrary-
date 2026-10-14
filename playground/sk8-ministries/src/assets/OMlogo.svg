@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <!-- Off-white background -->
+  <rect width="600" height="600" fill="#FAF6E9" />
+
+  <!-- Outer Circular Ring -->
+  <circle cx="300" cy="300" r="235" fill="none" stroke="#E65100" stroke-width="28" />
+
+  <!-- MAIN ORANGE BOOK BODY -->
+  <!-- Left Inner Page -->
+  <path d="M 182 110 C 228 144 264 178 300 210 L 300 528 C 274 502 228 470 182 444 Z" fill="#E65100" />
+  
+  <!-- Right Inner Page -->
+  <path d="M 418 110 C 372 144 336 178 300 210 L 300 528 C 326 502 372 470 418 444 Z" fill="#E65100" />
+
+  <!-- LEFT OUTER COVER STRIP -->
+  <path d="M 148 160 L 168 160 L 168 448 C 216 474 258 506 288 538 L 270 552 C 234 518 186 482 148 456 Z" fill="#E65100" />
+
+  <!-- RIGHT OUTER COVER STRIP -->
+  <path d="M 452 160 L 432 160 L 432 448 C 384 474 342 506 312 538 L 330 552 C 366 518 414 482 452 456 Z" fill="#E65100" />
+
+  <!-- CROSS CUTOUT (Negative Space Overlay) -->
+  <path d="M 282 252 L 318 252 L 318 552 L 282 552 Z" fill="#FAF6E9" />
+  <rect x="246" y="308" width="108" height="40" fill="#FAF6E9" />
+</svg>

@@ -1,0 +1,17 @@
+{
+  "commonId": "faithful-freestyle",
+  "title": "Faithful Freestyle",
+  "type": "book",
+  "dateCreated": "2024-04-21",
+  "authors": ["Skateboard Ministries"],
+  "content": [
+    {
+      "url": "/files/example.pdf",
+      "type": "upload"
+    }
+  ],
+  "categories": ["christian-living", "educational"],
+  "image": "https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.goodreads.com%2Fbook%2Fshow%2F239432819-liar-s-dice&ved=0CBYQjRxqFwoTCJiq_sDDu5YDFQAAAAAdAAAAABA4&opi=89978449",
+  "language": "en",
+  "description": "*How to: Faithful Freestyle* empowers you to express your Christianity through the unique and creative outlet of skateboarding. This book includes:\n\n- **Creative ways to incorporate faith** into your skating routines\n- **Stories of freestyle skaters** who honor God through their sport\n- **Practical advice on witnessing** to others in the skateboarding scene\n- **Inspirational devotions** designed for skaters\n\nEmbrace a faithful freestyle and let every trick and turn reflect your devotion to Christ."
+}

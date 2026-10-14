@@ -1,70 +1,370 @@
 ---
 export { getLocalePaths as getStaticPaths } from "lightnet/i18n"
 
-import { AstroError } from "astro/errors"
-import { getEntry } from "astro:content"
-import { getEntries } from "astro:content"
-import {
-  CategoriesSection,
-  HeroSection,
-  HighlightSection,
-  MediaGallerySection,
-  Page,
-} from "lightnet/components"
+import { getCollection } from "astro:content"
+import { MediaGallerySection, Page } from "lightnet/components"
 import { getMediaItems } from "lightnet/content"
 import { searchPagePath } from "lightnet/utils"
 
-import eventImage from "../../assets/event.webp"
-import heroImage from "../../assets/hero.webp"
+const { t, currentLocale } = Astro.locals.i18n
 
+// 1. Fetch books
 const latestBooks = await getMediaItems({
-  where: { type: "book" },
+  where: {
+    type: "book",
+    language: currentLocale,
+  },
 })
 
-const learnSkateboarding = await getEntry(
-  "media-collections",
-  "learn-skateboarding",
-)
-if (!learnSkateboarding) {
-  throw new AstroError("Media Collection 'learn-skateboarding' not found")
-}
-const learnSkateboardingItems = await getEntries(
-  learnSkateboarding.data.mediaItems,
+// 2. Define the exact 8 categories to display, in order
+const targetCategories = [
+  "bible-studies",
+  "discipleship",
+  "children-books",
+  "support-and-counseling",
+  "educational",
+  "christian-living",
+  "hindi",
+  "theology",
+]
+
+// 3. Fetch raw categories
+const rawCategories = await getCollection("categories")
+
+// 4. Filter and retain ONLY the 8 target categories in defined order
+const sortedCategories = targetCategories
+  .map((id) =>
+    rawCategories.find((cat) => {
+      const cleanId = (cat.id || cat.slug || "").replace(/\.(json|md|mdx)$/, "")
+      return cleanId === id
+    }),
+  )
+  .filter(Boolean)
+
+// 5. Import category images dynamically
+const categoryImages = import.meta.glob<{ default: ImageMetadata | string }>(
+  "../../content/categories/**/*.{webp,png,jpg,jpeg}",
+  { eager: true },
 )
 
-const { t, tContentField, currentLocale } = Astro.locals.i18n
+const getCategoryImage = (imagePath: any) => {
+  if (!imagePath) return null
+  if (typeof imagePath === "object" && "src" in imagePath) return imagePath.src
+  const cleanPath = String(imagePath).replace(/^\//, "")
+  const fullKey = `../../content/categories/${cleanPath}`
+  const asset = categoryImages[fullKey]
+  return asset?.default?.src || asset?.default || asset || null
+}
+
+const categoryItems = sortedCategories.map((cat: any) => {
+  const cleanId = (cat.id || cat.slug || "").replace(/\.(json|md|mdx)$/, "")
+  const label =
+    cat.data?.label?.[currentLocale] || cat.data?.label?.en || cleanId
+
+  return {
+    id: cleanId,
+    label,
+    image: getCategoryImage(cat.data?.image),
+    href: searchPagePath(currentLocale, { category: cleanId }),
+  }
+})
 ---
 
 <Page>
-  <HeroSection
-    image={heroImage}
-    title={t("site.title")}
-    subtitle={t("ministry.slogan")}
-    titleSize="lg"
-    subtitleSize="lg"
-    showSearch
-  />
+  <!-- Top Section (Language Switcher Only) -->
+  <div
+    class="relative mb-12 flex flex-col items-center justify-center bg-transparent pb-6 pt-16 text-gray-900 transition-colors duration-200 dark:text-white sm:pt-20"
+  >
+    <div class="flex w-full max-w-2xl items-center justify-center gap-6">
+      <a
+        href="/en/"
+        class={`group px-8 py-4 w-52 text-center rounded-xl font-semibold transition-all duration-200 border-2 flex flex-col items-center justify-center gap-1 ${
+          currentLocale === "en"
+            ? "bg-gray-900 text-white border-gray-900 shadow-md dark:bg-sky-600 dark:border-sky-600 dark:text-white"
+            : "bg-white text-gray-800 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
+        }`}
+      >
+        <span class="text-2xl font-bold tracking-wide">English</span>
+        <span class="text-sm font-medium opacity-80">अंग्रेजी</span>
+      </a>
 
-  <CategoriesSection titleHref={`/${currentLocale}/categories`} />
+      <a
+        href="/ne/"
+        class={`group px-8 py-4 w-52 text-center rounded-xl font-semibold transition-all duration-200 border-2 flex flex-col items-center justify-center gap-1 ${
+          currentLocale === "ne"
+            ? "bg-gray-900 text-white border-gray-900 shadow-md dark:bg-sky-600 dark:border-sky-600 dark:text-white"
+            : "bg-white text-gray-800 border-gray-300 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:border-gray-600"
+        }`}
+      >
+        <span class="text-2xl font-bold tracking-wide">नेपाली</span>
+        <span class="text-sm font-medium opacity-80">Nepali</span>
+      </a>
+    </div>
+  </div>
 
-  <MediaGallerySection
-    title={t("home.our-latest-books")}
-    titleHref={searchPagePath(currentLocale, { type: "book" })}
-    items={latestBooks}
-  />
+  <!-- Shared Alignment Border Wrapper -->
+  <div class="w-full px-4 sm:px-6 lg:px-8">
+    <!-- Our Books Section -->
+    <div class="aligned-section pb-8 pt-4">
+      <MediaGallerySection
+        title={t("home.our-latest-books")}
+        titleHref={searchPagePath(currentLocale, { type: "book" })}
+        items={latestBooks}
+      />
+    </div>
 
-  <HighlightSection
-    image={eventImage}
-    title={t("home.bbq.title")}
-    text={t("home.bbq.text")}
-    link={{
-      href: "mailto:some-email-address-from-the-ministry",
-      text: t("home.bbq.sign-up-now"),
-    }}
-  />
+    <hr class="mb-12 mt-16 border-t border-gray-200 dark:border-gray-800" />
 
-  <MediaGallerySection
-    title={tContentField(learnSkateboarding.data.label, learnSkateboarding)}
-    items={learnSkateboardingItems}
-  />
+    <!-- Scrollable Categories Carousel -->
+    <div class="relative pb-16 pt-8">
+      <div class="mb-5 flex items-center justify-between">
+        <a
+          href={`/${currentLocale}/categories`}
+          class="group flex items-center gap-2 text-3xl font-extrabold tracking-tight text-gray-900 transition-opacity hover:opacity-80 dark:text-white"
+        >
+          <span>Categories</span>
+          <span
+            class="text-gray-900 transition-transform group-hover:translate-x-1 dark:text-white"
+            >&gt;</span
+          >
+        </a>
+        <div class="flex gap-1.5">
+          <button
+            id="cat-prev-btn"
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            aria-label="Previous categories"
+          >
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+          <button
+            id="cat-next-btn"
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            aria-label="Next categories"
+          >
+            <svg
+              class="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="cat-scroll-container"
+        class="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth py-1"
+      >
+        {
+          categoryItems.map((cat) => (
+            <a
+              href={cat.href}
+              class="group relative flex aspect-[1.15/1] w-full min-w-[200px] max-w-[260px] flex-none snap-start flex-col justify-end overflow-hidden rounded-2xl bg-gray-900 p-4 shadow-sm transition-transform duration-200 hover:scale-[1.02] sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.75rem)] lg:w-[calc(25%-0.75rem)] xl:w-[calc(20%-0.8rem)]"
+            >
+              {cat.image && (
+                <img
+                  src={cat.image}
+                  alt={cat.label}
+                  class="absolute inset-0 h-full w-full object-cover opacity-85 transition-opacity group-hover:opacity-100"
+                />
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+              <span class="relative z-10 text-sm font-bold tracking-wide text-white">
+                {cat.label}
+              </span>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
 </Page>
+
+<style is:global>
+  /* Explicit theme background overrides */
+  html {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
+
+  html.dark {
+    background-color: #0f172a;
+    color: #f8fafc;
+  }
+
+  body {
+    background-color: transparent !important;
+  }
+
+  .aligned-section > div,
+  .aligned-section section,
+  .aligned-section [class*="container"] {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  .aligned-section ul,
+  .aligned-section [class*="grid"],
+  .aligned-section [class*="flex"] {
+    justify-content: flex-start !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Hide Lightnet footer credits only */
+  footer a[href*="lightnet"],
+  footer [data-hide-lightnet="true"] {
+    display: none !important;
+    visibility: hidden !important;
+  }
+</style>
+
+<script>
+  function setupCategoryCarousel() {
+    const container = document.getElementById("cat-scroll-container")
+    const prevBtn = document.getElementById("cat-prev-btn")
+    const nextBtn = document.getElementById("cat-next-btn")
+    if (container && prevBtn && nextBtn) {
+      prevBtn.addEventListener("click", () =>
+        container.scrollBy({ left: -260, behavior: "smooth" }),
+      )
+      nextBtn.addEventListener("click", () =>
+        container.scrollBy({ left: 260, behavior: "smooth" }),
+      )
+    }
+  }
+  setupCategoryCarousel()
+  document.addEventListener("astro:after-swap", setupCategoryCarousel)
+</script>
+
+<script is:inline>
+  function handleThemeToggle() {
+    const isDark =
+      document.documentElement.classList.contains("dark") ||
+      localStorage.getItem("theme") === "dark"
+
+    if (isDark) {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+      localStorage.setItem("color-scheme", "light")
+    } else {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+      localStorage.setItem("color-scheme", "dark")
+    }
+  }
+
+  function attachThemeListener() {
+    const headerButtons = document.querySelectorAll("header button")
+    headerButtons.forEach((btn) => {
+      if (!btn.dataset.themeBound) {
+        btn.dataset.themeBound = "true"
+        btn.addEventListener("click", () => {
+          setTimeout(handleThemeToggle, 10)
+        })
+      }
+    })
+  }
+
+  function removeUnwantedMenuItems() {
+    const footerLinks = document.querySelectorAll("footer a")
+    footerLinks.forEach((link) => {
+      if (link.href && link.href.includes("lightnet")) {
+        const parent = link.closest("div, span, p")
+        if (
+          parent &&
+          parent.parentElement &&
+          parent.parentElement.tagName === "FOOTER"
+        ) {
+          parent.style.display = "none"
+        } else {
+          link.style.display = "none"
+        }
+      }
+    })
+  }
+
+  function cleanDownloadDropdown() {
+    // Find all clickable elements or buttons rendered in the dropdown popover
+    const elements = document.querySelectorAll("button, a, div")
+    elements.forEach((el) => {
+      const text = el.textContent?.trim()
+      if (text === "EPUB") {
+        // If this EPUB option points to a PDF fallback or shares the PDF href, hide it
+        const href = el.getAttribute("href") || ""
+        const parentBox = el.closest("div")
+        const pdfSibling = parentBox
+          ? parentBox.querySelector("a[href*='.pdf'], button")
+          : null
+
+        if (href.toLowerCase().endsWith(".pdf") || !href || href === "#") {
+          el.style.display = "none"
+        }
+      }
+    })
+  }
+
+  // Use a MutationObserver to instantly catch dropdown appearance dynamically
+  const observer = new MutationObserver(() => {
+    cleanDownloadDropdown()
+  })
+
+  document.addEventListener("DOMContentLoaded", () => {
+    observer.observe(document.body, { childList: true, subtree: true })
+    cleanDownloadDropdown()
+  })
+
+  // Initial Sync
+  const savedTheme = localStorage.getItem("theme")
+  if (savedTheme === "dark") {
+    document.documentElement.classList.add("dark")
+  } else if (savedTheme === "light") {
+    document.documentElement.classList.remove("dark")
+  }
+
+  attachThemeListener()
+  removeUnwantedMenuItems()
+
+  document.addEventListener("click", () => {
+    attachThemeListener()
+    setTimeout(cleanDownloadDropdown, 50)
+  })
+
+  document.addEventListener("astro:page-load", () => {
+    attachThemeListener()
+    removeUnwantedMenuItems()
+    cleanDownloadDropdown()
+  })
+  document.addEventListener("astro:after-swap", () => {
+    attachThemeListener()
+    removeUnwantedMenuItems()
+    cleanDownloadDropdown()
+  })
+</script>

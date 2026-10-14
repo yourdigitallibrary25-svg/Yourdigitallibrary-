@@ -1,51 +1,50 @@
 ---
-import type { GetStaticPaths } from "astro"
-import { AstroError } from "astro/errors"
 import { getCollection } from "astro:content"
-import config from "virtual:lightnet/config"
 
-import { getMediaItem } from "../../content/get-media-items"
-import { getMediaType } from "../../content/get-media-types"
-import AudioDetailsPage from "./AudioDetailsPage.astro"
 import DefaultDetailsPage from "./DefaultDetailsPage.astro"
-import VideoDetailsPage from "./VideoDetailsPage.astro"
 
-export const getStaticPaths = (async () => {
-  const mediaItems = await getCollection("media")
-  return config.locales.flatMap((locale) =>
-    mediaItems.map(({ id: mediaId }) => ({ params: { mediaId, locale } })),
-  )
-}) satisfies GetStaticPaths
+export async function getStaticPaths() {
+  const mediaEntries = await getCollection("media")
 
-const { mediaId } = Astro.params
-const mediaItem = (await getMediaItem(Astro.params.mediaId)).data
+  return mediaEntries.map((entry) => {
+    // Always use entry.slug or strip the file extension cleanly
+    const slug = (entry.slug || entry.id).replace(/\.[^/.]+$/, "")
+    const locale = slug.endsWith("-ne") ? "ne" : "en"
 
-const {
-  data: { detailsPage },
-} = await getMediaType(mediaItem.type.id)
-
-let CustomDetails
-const layout = detailsPage?.layout ?? "default"
-if (detailsPage?.layout === "custom") {
-  const d = import.meta.glob("/src/details-pages/*.astro")
-  const customDetailsImport = d[
-    `/src/details-pages/${detailsPage.customComponent}`
-  ] as () => Promise<any>
-  if (!customDetailsImport) {
-    throw new AstroError(
-      `Missing custom details page "${detailsPage.customComponent}"`,
-      `To fix the issue, add your details page on "/src/details-pages/${detailsPage.customComponent}".`,
-    )
-  }
-  CustomDetails = (await customDetailsImport()).default
+    return {
+      params: { locale, mediaId: slug },
+      props: { mediaId: slug },
+    }
+  })
 }
+
+const { locale, mediaId } = Astro.params
+
+// 1. Fetch all media entries
+const allMediaEntries = await getCollection("media")
+
+// 2. Clean the incoming mediaId
+const cleanMediaId = mediaId.replace(/\.[^/.]+$/, "")
+
+// 3. Compute the alternate slug (-en <-> -ne)
+let alternateSlug = cleanMediaId
+if (cleanMediaId.endsWith("-en")) {
+  alternateSlug = cleanMediaId.slice(0, -3) + "-ne"
+} else if (cleanMediaId.endsWith("-ne")) {
+  alternateSlug = cleanMediaId.slice(0, -3) + "-en"
+}
+
+// 4. Check if the alternate entry exists in the collection
+const alternateExists = allMediaEntries.some((entry) => {
+  const entrySlug = (entry.slug || entry.id).replace(/\.[^/.]+$/, "")
+  return entrySlug === alternateSlug
+})
+
+// 5. Build the correct localized target URL
+const alternateLocale = locale === "en" ? "ne" : "en"
+const targetUrl = alternateExists
+  ? `/${alternateLocale}/media/${alternateSlug}`
+  : undefined
 ---
 
-{
-  layout === "default" && (
-    <DefaultDetailsPage mediaId={mediaId} {...detailsPage} />
-  )
-}
-{layout === "video" && <VideoDetailsPage mediaId={mediaId} {...detailsPage} />}
-{layout === "audio" && <AudioDetailsPage mediaId={mediaId} {...detailsPage} />}
-{CustomDetails && <CustomDetails mediaId={mediaId} {...detailsPage} />}
+<DefaultDetailsPage mediaId={cleanMediaId} targetUrl={targetUrl} />

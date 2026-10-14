@@ -12,6 +12,11 @@
       "en": "Read",
       "ar": "اقرأ",
       "de": "Lesen"
+    },
+    "downloadActionLabel": {
+      "en": "Download",
+      "ar": "تحميل",
+      "de": "Herunterladen"
     }
   }
 }

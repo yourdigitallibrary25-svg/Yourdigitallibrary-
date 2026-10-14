@@ -1,5 +1,5 @@
 ---
-import ContentSection from "./components/ContentSection.astro"
+import { getMediaItem } from "../../content/get-media-items"
 import DescriptionSection from "./components/DescriptionSection.astro"
 import DetailsPage from "./components/DetailsPage.astro"
 import OpenButton from "./components/main-details/OpenButton.astro"
@@ -10,15 +10,128 @@ import MoreDetailsSection from "./components/MoreDetailsSection.astro"
 export type Props = {
   mediaId: string
 }
+
 const { mediaId } = Astro.props
+
+// 1. Fetch current media item details
+const item = await getMediaItem(mediaId)
+
+// 2. Identify current locale/language from route params or item data
+const currentLocale = Astro.params.locale || item?.data?.language || "en"
+const isEnglish = currentLocale === "en" || currentLocale.startsWith("en")
+
+// 3. Define target language button label and corresponding target URL route
+const alternateLabel = isEnglish ? "Nepali" : "English"
+const alternateLocale = isEnglish ? "ne" : "en"
+
+// 4. Thoroughly strip file extensions and ALL trailing language suffixes (-en / -ne) recursively
+let cleanBaseId = mediaId.replace(/\.[^/.]+$/, "")
+while (cleanBaseId.endsWith("-en") || cleanBaseId.endsWith("-ne")) {
+  cleanBaseId = cleanBaseId.slice(0, -3)
+}
+
+// 5. Build the exact target slug cleanly
+const alternateSlug = `${cleanBaseId}-${alternateLocale}`
+const targetUrl = `/${alternateLocale}/media/${alternateSlug}`
 ---
 
 <DetailsPage mediaId={mediaId}>
   <MainDetailsSection mediaId={mediaId}>
-    <OpenButton className="mt-8" mediaId={mediaId} />
+    <div id="open-button-container" class="mt-8">
+      <OpenButton mediaId={mediaId} />
+    </div>
+
+    {
+      /* Full-Page Overlay Reader Container with Absolute Pitch-Black Background */
+    }
+    <div
+      id="inline-pdf-viewer"
+      class="fixed inset-0 top-16 z-50 hidden h-[calc(100vh-4rem)] w-screen overflow-hidden bg-[#050505] dark:bg-[#050505]"
+      style="background-color: #050505 !important;"
+    >
+      <div
+        class="relative h-full w-full overflow-hidden bg-[#050505]"
+        style="background-color: #050505 !important;"
+      >
+        {/* Floating Close Reader Button */}
+        <button
+          id="close-pdf-btn"
+          type="button"
+          class="absolute right-8 top-4 z-50 rounded-lg bg-gray-900/90 px-4 py-2 text-xs font-bold text-white shadow-xl backdrop-blur-md transition-all hover:bg-red-600 dark:bg-gray-800/90 dark:hover:bg-red-600"
+        >
+          ✕ Close Reader
+        </button>
+
+        <iframe
+          id="inline-pdf-iframe"
+          src=""
+          class="pdf-embed-frame h-full w-[102%] -translate-x-[1%] border-0 bg-[#050505]"
+          style="background-color: #050505 !important;"
+          title="Book Reader"></iframe>
+      </div>
+    </div>
+
+    {/* Also available in section */}
+    <div class="mt-4 flex items-center gap-2 text-gray-700 dark:text-gray-300">
+      <span class="text-base font-bold">Also available in:</span>
+
+      <a
+        href={targetUrl}
+        class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm transition-all hover:bg-gray-200 hover:text-gray-950 active:scale-95 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+      >
+        {alternateLabel}
+      </a>
+    </div>
   </MainDetailsSection>
+
   <DescriptionSection mediaId={mediaId} />
-  <ContentSection mediaId={mediaId} />
   <MediaCollectionsSection mediaId={mediaId} />
   <MoreDetailsSection mediaId={mediaId} />
 </DetailsPage>
+
+<script>
+  function setupFullPageReader() {
+    const container = document.getElementById("open-button-container")
+    const viewer = document.getElementById("inline-pdf-viewer")
+    const iframe = document.getElementById(
+      "inline-pdf-iframe",
+    ) as HTMLIFrameElement
+    const closeBtn = document.getElementById("close-pdf-btn")
+
+    if (!container || !viewer || !iframe) return
+
+    // Intercept Read button click
+    const readLink = container.querySelector("a")
+    if (readLink) {
+      readLink.addEventListener("click", (e) => {
+        const href = readLink.getAttribute("href")
+
+        if (href && href.includes(".pdf")) {
+          e.preventDefault()
+
+          const cleanUrl = href.split("#")[0]
+          const formattedUrl = `${cleanUrl}#view=FitH`
+
+          if (iframe.src !== formattedUrl) {
+            iframe.src = formattedUrl
+          }
+
+          viewer.classList.remove("hidden")
+          document.body.style.overflow = "hidden"
+        }
+      })
+    }
+
+    // Handle Close button click
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        viewer.classList.add("hidden")
+        document.body.style.overflow = ""
+      })
+    }
+  }
+
+  setupFullPageReader()
+  document.addEventListener("astro:page-load", setupFullPageReader)
+  document.addEventListener("astro:after-swap", setupFullPageReader)
+</script>

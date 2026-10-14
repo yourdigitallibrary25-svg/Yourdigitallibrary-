@@ -1,8 +1,8 @@
 {
+  "order": 4,
   "label": {
-    "en": "Support & Counseling",
-    "de": "Hilfe & Beratung",
-    "ar": "الدعم والإرشاد"
+    "en": "Support and Counseling",
+    "ne": "सहयोग र परामर्श"
   },
-  "image": "images/4.webp"
+  "image": "images/7.webp"
 }

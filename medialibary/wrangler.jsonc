@@ -1,0 +1,22 @@
+{
+  // TODO: Rename this to match your LightNet site name before deploying to Cloudflare.
+  //       Example: if your site is "Grace Library", use a name like "grace-library".
+  "name": "example-template",
+  "compatibility_date": "2026-06-08",
+  "workers_dev": true,
+  "preview_urls": true,
+  "send_metrics": false,
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+  // TODO: Uncomment `routes` below when you're ready to serve this site on your own domain.
+  //       Replace `your-site.example` with the real domain of your LightNet site.
+  // ,
+  // "routes": [
+  //   {
+  //     "pattern": "your-site.example",
+  //     "custom_domain": true
+  //   }
+  // ]
+}

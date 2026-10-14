@@ -10,7 +10,7 @@ All keys have been translated. ✅
 
 All keys have been translated. ✅
 
-## **DE** ([de.yml](./de.yml))
+## **DE** ([ne.yml](./ne.yml))
 
 All keys have been translated. ✅
 

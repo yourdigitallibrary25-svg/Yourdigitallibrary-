@@ -4,7 +4,7 @@ import YAML from "yaml"
 const builtInTranslations = {
   ar: () => import("./translations/ar.yml?raw"),
   bn: () => import("./translations/bn.yml?raw"),
-  de: () => import("./translations/de.yml?raw"),
+  de: () => import("./translations/ne.yml?raw"),
   en: () => import("./translations/en.yml?raw"),
   es: () => import("./translations/es.yml?raw"),
   fi: () => import("./translations/fi.yml?raw"),

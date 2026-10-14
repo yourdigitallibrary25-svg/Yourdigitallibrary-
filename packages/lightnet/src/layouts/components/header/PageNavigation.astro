@@ -2,14 +2,15 @@
 import {
   ExternalLinkIcon,
   MenuIcon,
+  MoonIcon,
   SearchIcon,
   SquarePenIcon,
+  SunIcon,
 } from "lucide-react"
 import config from "virtual:lightnet/config"
 
 import { isExternalUrl } from "../../../utils/is-external-url"
 import { localizePath, searchPagePath } from "../../../utils/paths"
-import LanguageSelectionMenu from "./LanguageSelectionMenu.astro"
 import Menu from "./Menu.astro"
 import MenuItem from "./MenuItem.astro"
 
@@ -31,9 +32,33 @@ const items = (config.mainMenu ?? []).map(({ href, label, requiresLocale }) => {
 })
 ---
 
-<nav class="-me-3 flex items-center">
+<nav class="-me-3 flex items-center gap-1">
+  <!-- Theme Switcher -->
+  <div
+    class="flex items-center gap-1 rounded-lg border border-gray-300 bg-gray-100 p-1 dark:border-gray-700 dark:bg-gray-800"
+  >
+    <button
+      type="button"
+      onclick="event.stopPropagation(); localStorage.setItem('theme', 'light'); window.dispatchEvent(new Event('theme-change'));"
+      class="rounded-md p-1.5 text-gray-600 hover:bg-white hover:text-primary dark:text-gray-300 dark:hover:bg-gray-700"
+      title="Light Mode"
+      aria-label="Light Mode"
+    >
+      <SunIcon size="1.1rem" />
+    </button>
+    <button
+      type="button"
+      onclick="event.stopPropagation(); localStorage.setItem('theme', 'dark'); window.dispatchEvent(new Event('theme-change'));"
+      class="rounded-md p-1.5 text-gray-600 hover:bg-white hover:text-primary dark:text-gray-300 dark:hover:bg-gray-700"
+      title="Dark Mode"
+      aria-label="Dark Mode"
+    >
+      <MoonIcon size="1.1rem" />
+    </button>
+  </div>
+
   <a
-    class="hidden p-3 text-gray-600 hover:text-primary"
+    class="hidden p-3 text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-white"
     aria-label={t("ln.details.edit")}
     href="#"
     id="header-admin-btn"
@@ -43,7 +68,7 @@ const items = (config.mainMenu ?? []).map(({ href, label, requiresLocale }) => {
   {
     !config.searchPage?.hideHeaderSearchIcon && (
       <a
-        class="flex p-3 text-gray-600 hover:text-primary"
+        class="flex p-3 text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-white"
         aria-label={t("ln.search.title")}
         data-astro-prefetch="viewport"
         href={searchPagePath(currentLocale)}
@@ -52,8 +77,6 @@ const items = (config.mainMenu ?? []).map(({ href, label, requiresLocale }) => {
       </a>
     )
   }
-
-  <LanguageSelectionMenu />
 
   {
     !!items.length && (
@@ -74,6 +97,7 @@ const items = (config.mainMenu ?? []).map(({ href, label, requiresLocale }) => {
     )
   }
 </nav>
+
 <script>
   const initAdminButton = () => {
     const adminPath = localStorage.getItem("ln.adminPaths")
@@ -92,4 +116,5 @@ const items = (config.mainMenu ?? []).map(({ href, label, requiresLocale }) => {
     btn.classList.add("flex")
   }
   initAdminButton()
+  document.addEventListener("astro:page-load", initAdminButton)
 </script>

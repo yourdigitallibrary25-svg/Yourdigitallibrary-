@@ -724,7 +724,7 @@
 
 ### Patch Changes
 
-- [#217](https://github.com/LightNetDev/LightNet/pull/217) [`c490b1f`](https://github.com/LightNetDev/LightNet/commit/c490b1f0d5d90e0284fba4cf1fe01af5efdf753e) Thanks [@smn-cds](https://github.com/smn-cds)! - Fixed missing translation for de.yml
+- [#217](https://github.com/LightNetDev/LightNet/pull/217) [`c490b1f`](https://github.com/LightNetDev/LightNet/commit/c490b1f0d5d90e0284fba4cf1fe01af5efdf753e) Thanks [@smn-cds](https://github.com/smn-cds)! - Fixed missing translation for ne.yml
 
 ## 2.16.2
 

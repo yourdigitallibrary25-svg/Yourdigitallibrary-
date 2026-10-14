@@ -1,0 +1,11 @@
+{
+  "label": {
+    "en": "Video",
+    "de": "Video"
+  },
+  "coverImageStyle": "video",
+  "detailsPage": {
+    "layout": "video"
+  },
+  "icon": "lucide--video"
+}

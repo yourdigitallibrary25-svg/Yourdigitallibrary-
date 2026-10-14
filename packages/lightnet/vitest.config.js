@@ -17,7 +17,7 @@ export default defineConfig({
   plugins: [
     vitePluginLightnetConfig(
       {
-        title: { en: "Sk8 Ministries" },
+        title: { en: "Your Digital Library" },
         logo: { src: "./logo.svg" },
         languages: [
           {

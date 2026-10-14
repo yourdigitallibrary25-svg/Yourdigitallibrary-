@@ -5,8 +5,6 @@ layout: "lightnet/layouts/MarkdownPage.astro"
 
 # About
 
-Welcome to our Skateboarding Ministry example site! This is a demonstration of the LightNet, a tool designed to help build Christian media library websites. Please note, this ministry is fictional and created solely to showcase LightNet’s features.
+Come join us at our upcoming community gathering! Enjoy time with friends and find in deep conversation. Everyone is welcome!
 
-<!-- Image will automatically be optimized by Astro. Allowed formats include jpg, png, webp... -->
-
-![Skate community](../../assets/hero.webp)
+<img src="/aabout.webp" alt="Community Gathering" style="margin-top: 1.5rem; border-radius: 0.75rem; width: 100%; object-fit: cover;" />

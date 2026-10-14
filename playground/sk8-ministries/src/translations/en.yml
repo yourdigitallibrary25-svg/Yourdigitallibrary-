@@ -1,9 +1,18 @@
-site.title: Sk8 Ministries
-ministry.slogan: Living faith, building community
-home.our-latest-books: Our latest Books
-home.bbq.title: Skate, BBQ & Faith
+label: English
+site.title: Your Digital Library
+ministry.slogan: Your Digital Library is committed to bringing long-term stability to Nepal through the transformation of local people and communities.
+
+ln.categories: Search by category
+
+home.our-latest-books: Our latest books
+home.bbq.title: About Us
 home.bbq.text: >
-  Join us for our next community meeting!  Enjoy a BBQ, skate with friends, and
-  engage in meaningful conversations about Jesus.  Don’t miss this opportunity
-  to connect, skate, and grow in faith together.  All skill levels welcome!
-home.bbq.sign-up-now: Sign Up Now
+  Come join us at our upcoming community gathering!
+  Enjoy time with friends and join in deep conversation.
+  Everyone is welcome!
+home.bbq.sign-up-now: Register now
+read: Read
+download: Download
+
+ln.details.open: Read
+ln.details.download: Download

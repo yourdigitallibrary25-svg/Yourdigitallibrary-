@@ -1,8 +1,8 @@
 {
+  "order": 5,
   "label": {
-    "en": "Educational",
-    "de": "Schulung",
-    "ar": "تعليمية"
+    "en": "Nepali Books",
+    "ne": "नेपाली किताबहरू"
   },
-  "image": "images/3.webp"
+  "image": "images/8.webp"
 }

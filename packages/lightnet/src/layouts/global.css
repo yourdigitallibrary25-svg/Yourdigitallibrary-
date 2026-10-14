@@ -1,3 +1,43 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Base theme setup */
+html {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+html.dark {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+body {
+  background-color: transparent !important;
+}
+
+/* Hide About link across all menus, headers, footers, and page templates */
+a[href*="/about"],
+li:has(a[href*="/about"]) {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Dark Mode PDF Reader Styling */
+html.dark .pdf-embed-frame,
+html.dark iframe[src*=".pdf"],
+html.dark embed[type="application/pdf"],
+html.dark object[type="application/pdf"] {
+  filter: invert(0.93) hue-rotate(180deg) contrast(1.25) brightness(0.9) !important;
+  background-color: #050505 !important;
+}
+
+/* Pitch Dark Container */
+#inline-pdf-viewer,
+#inline-pdf-viewer > div,
+html.dark #inline-pdf-viewer,
+html.dark #inline-pdf-viewer > div {
+  background-color: #050505 !important;
+  border-color: #050505 !important;
+}

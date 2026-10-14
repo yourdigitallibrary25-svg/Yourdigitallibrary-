@@ -13,39 +13,11 @@ import Favicon from "./components/meta/Favicon.astro"
 import ViewTransition from "./components/meta/ViewTransition.astro"
 
 export interface Props {
-  /**
-   * Title of the page to be shown in browser tab.
-   */
   title?: string
-  /**
-   * Meta description for the page.
-   */
   description?: string
-  /**
-   * Css classes to apply to main element.
-   */
   mainClass?: string
-  /**
-   * Locale to override current locale from path.
-   */
   locale?: string
-  /**
-   * Disables the `should-track` attribute on the root `html` element for
-   * pages that should be excluded from analytics tracking.
-   *
-   * The `should-track`` attribute does not enable tracking on its own; it is intended to be picked up by
-   * analytics providers that choose to respect it. e.g. @lightnet/plausible-analytics
-   */
   disableShouldTrack?: boolean
-  /**
-   * Disallow search indexing for this page from search tools like google.
-   * This tells them to not index content on this page.
-   *
-   * There is also a global setting to disable search indexing for all pages.
-   * The page specific setting will take precedence.
-   *
-   * default: false
-   */
   disallowSearchIndexing?: boolean
 }
 
@@ -72,6 +44,27 @@ const { direction } = resolveLanguage(currentLocale)
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Include JSZip and ePub.js for native built-in reading -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+
+    <script is:inline>
+      ;(function () {
+        const storedTheme = localStorage.getItem("theme")
+        if (
+          storedTheme === "dark" ||
+          (!storedTheme &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+        ) {
+          document.documentElement.classList.add("dark")
+        } else {
+          document.documentElement.classList.remove("dark")
+        }
+      })()
+    </script>
     {
       (disallowSearchIndexing ?? config.disallowSearchIndexing) && (
         <meta name="robots" content="noindex" />
@@ -84,14 +77,706 @@ const { direction } = resolveLanguage(currentLocale)
     <link rel="prefetch" href={pathWithBase("/api/internal/search.json")} />
     <Favicon />
     <ViewTransition />
+
+    <style is:global>
+      /* Hide Arabic language option globally in selects and link blocks */
+      option[value*="ar"],
+      option[value="ar"],
+      a[href*="/ar/"],
+      a[href$="/ar"] {
+        display: none !important;
+      }
+
+      /* Force Footer Language Selector Dropdown to Open Upward */
+      footer div:has(> ul),
+      footer div:has(> div[role="menu"]),
+      footer .relative {
+        position: relative !important;
+      }
+      footer ul[role="menu"],
+      footer div:has(> a[href*="/en"]),
+      footer div:has(> a[href*="/ne"]) {
+        position: absolute !important;
+        bottom: 100% !important;
+        top: auto !important;
+        margin-bottom: 6px !important;
+      }
+
+      /* Hide Admin Link / Icon Everywhere */
+      header a[href*="admin"],
+      header button:has(a[href*="admin"]),
+      header svg[class*="lucide-edit"],
+      header svg[class*="lucide-pen"] {
+        display: none !important;
+        visibility: hidden !important;
+      }
+
+      /* Base Light Mode Setup */
+      html:not(.dark),
+      html:not(.dark) body,
+      html:not(.dark) header,
+      html:not(.dark) footer,
+      html:not(.dark) main,
+      html:not(.dark) section {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+      }
+
+      /* Dark Mode Setup */
+      html.dark,
+      html.dark body,
+      html.dark header,
+      html.dark footer,
+      html.dark main,
+      html.dark section {
+        background-color: #0b0f19 !important;
+        color: #ffffff !important;
+        border-color: #1f2937 !important;
+        box-shadow: none !important;
+      }
+
+      /* Text selection in dark mode */
+      html.dark ::selection {
+        background-color: #0284c7 !important;
+        color: #ffffff !important;
+      }
+
+      /* Cards & Containers in Dark Mode */
+      html.dark div:not([style*="background-image"])[class*="bg-white"],
+      html.dark div:not([style*="background-image"])[class*="bg-gray-"] {
+        background-color: #0b0f19 !important;
+        color: #ffffff !important;
+      }
+
+      /* Make description paragraphs and body text lighter and easier to read */
+      html.dark main p,
+      html.dark main span,
+      html.dark main div {
+        color: #cbd5e1 !important;
+      }
+
+      /* Keep Headings Bright White */
+      html.dark main h1,
+      html.dark main h2,
+      html.dark main h3,
+      html.dark main h4,
+      html.dark main h5,
+      html.dark main h6 {
+        color: #ffffff !important;
+      }
+
+      /* Force Search Bar Input Text to be visible and dark against the white search background */
+      html.dark main form input,
+      html.dark main div.rounded-full input,
+      html.dark main div:has(> input) input,
+      html.dark main input[type="search"],
+      html.dark main input[type="text"] {
+        background-color: transparent !important;
+        color: #0f172a !important;
+      }
+
+      html.dark main input:focus,
+      html.dark main input:active,
+      html.dark main input:hover {
+        color: #0f172a !important;
+      }
+
+      html.dark main input::placeholder {
+        color: #64748b !important;
+      }
+
+      /* Force filter dropdowns and selects to be dark */
+      html.dark select,
+      html.dark option,
+      html.dark textarea {
+        background-color: #161e2e !important;
+        color: #ffffff !important;
+        border-color: #374151 !important;
+      }
+
+      html.dark select *,
+      html.dark option * {
+        background-color: #161e2e !important;
+        color: #ffffff !important;
+      }
+
+      /* Precise individual book card hover in search results */
+      html.dark main article:hover,
+      html.dark main li:hover,
+      html.dark main a[class*="rounded"]:hover,
+      html.dark main div[class*="rounded"]:hover {
+        background-color: #161e2e !important;
+        color: #ffffff !important;
+      }
+
+      html.dark main article:hover *,
+      html.dark main li:hover *,
+      html.dark main a[class*="rounded"]:hover *,
+      html.dark main div[class*="rounded"]:hover * {
+        color: #ffffff !important;
+      }
+
+      /* Header icons in dark mode */
+      html.dark header a,
+      html.dark header span,
+      html.dark header div,
+      html.dark header p {
+        color: #ffffff !important;
+      }
+
+      html.dark header svg {
+        stroke: #ffffff !important;
+      }
+
+      html.dark .border-gray-100,
+      html.dark .border-gray-200,
+      html.dark .border-gray-300 {
+        border-color: #1f2937 !important;
+      }
+
+      /* Built-in Reader Overlay Styles */
+      #builtin-epub-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(11, 15, 25, 0.95);
+        z-index: 99999;
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      #builtin-epub-container {
+        width: 90%;
+        max-width: 850px;
+        height: 80vh;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+        position: relative;
+      }
+      .dark #builtin-epub-container {
+        background: #111827;
+      }
+      #builtin-epub-toolbar {
+        width: 90%;
+        max-width: 850px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        color: #fff;
+      }
+    </style>
   </head>
   <body
-    class="flex min-h-screen flex-col overflow-y-scroll bg-gray-50 text-gray-900"
+    class="flex min-h-screen flex-col overflow-y-scroll bg-gray-50 text-gray-900 transition-colors duration-200 dark:bg-gray-950 dark:text-gray-100"
   >
     <Header />
     <main class={`grow pb-8 pt-14 sm:py-20 ${mainClass ?? ""}`}>
       <slot />
     </main>
     {CustomFooter ? <CustomFooter /> : <Footer />}
+
+    <!-- Built-in EPUB Reader Overlay Modal -->
+    <div id="builtin-epub-overlay">
+      <div id="builtin-epub-toolbar">
+        <div class="flex items-center gap-2">
+          <button
+            id="reader-prev"
+            class="rounded bg-gray-700 px-3 py-1.5 text-sm transition hover:bg-gray-600"
+            >‹ Prev</button
+          >
+          <button
+            id="reader-next"
+            class="rounded bg-gray-700 px-3 py-1.5 text-sm transition hover:bg-gray-600"
+            >Next ›</button
+          >
+        </div>
+        <span
+          id="reader-title"
+          class="max-w-xs truncate px-2 text-sm font-semibold sm:max-w-md"
+          >Loading Book...</span
+        >
+        <div class="flex items-center gap-2">
+          <a
+            id="reader-download"
+            href="#"
+            target="_blank"
+            class="rounded bg-blue-600 px-3 py-1.5 text-sm text-white transition hover:bg-blue-500"
+            >Download</a
+          >
+          <button
+            id="reader-close"
+            class="rounded bg-red-600 px-3 py-1.5 text-sm text-white transition hover:bg-red-500"
+            >✕ Close</button
+          >
+        </div>
+      </div>
+      <div id="builtin-epub-container"></div>
+    </div>
+
+    <script is:inline>
+      function toggleTheme() {
+        const isDark = document.documentElement.classList.contains("dark")
+        if (isDark) {
+          document.documentElement.classList.remove("dark")
+          localStorage.setItem("theme", "light")
+        } else {
+          document.documentElement.classList.add("dark")
+          localStorage.setItem("theme", "dark")
+        }
+        if (window.updateEpubTheme) {
+          window.updateEpubTheme()
+        }
+      }
+
+      function setupThemeToggle() {
+        const themeIcons = document.querySelectorAll(
+          "header svg.lucide-sun, header svg.lucide-moon, header [aria-label*='theme' i], header [aria-label*='mode' i], header button:has(svg)",
+        )
+
+        themeIcons.forEach((icon) => {
+          const btn = icon.closest("button") || icon.closest("a") || icon
+          if (!btn || btn.dataset.themeBound) return
+
+          btn.dataset.themeBound = "true"
+          btn.addEventListener("click", (e) => {
+            e.preventDefault()
+            toggleTheme()
+          })
+        })
+      }
+
+      let activeBook = null
+      let activeRendition = null
+
+      window.updateEpubTheme = function () {
+        if (!activeRendition) return
+        const isDark = document.documentElement.classList.contains("dark")
+        if (isDark) {
+          activeRendition.themes.select("dark")
+        } else {
+          activeRendition.themes.select("light")
+        }
+      }
+
+      function openBuiltinReader(epubUrl) {
+        const overlay = document.getElementById("builtin-epub-overlay")
+        const container = document.getElementById("builtin-epub-container")
+        const titleEl = document.getElementById("reader-title")
+        const downloadBtn = document.getElementById("reader-download")
+
+        container.innerHTML = ""
+        overlay.style.display = "flex"
+        titleEl.textContent = "Loading book content..."
+        downloadBtn.href = epubUrl
+
+        try {
+          if (activeBook) {
+            activeBook.destroy()
+          }
+
+          activeBook = ePub(epubUrl)
+          activeRendition = activeBook.renderTo("builtin-epub-container", {
+            width: "100%",
+            height: "100%",
+            spread: "auto",
+          })
+
+          activeRendition.themes.register("light", {
+            body: {
+              background: "#ffffff !important",
+              color: "#0f172a !important",
+            },
+            "p, span, div, h1, h2, h3, h4, h5, h6, li, a": {
+              color: "#0f172a !important",
+            },
+          })
+
+          activeRendition.themes.register("dark", {
+            body: {
+              background: "#111827 !important",
+              color: "#f9fafb !important",
+            },
+            "p, span, div, h1, h2, h3, h4, h5, h6, li, a": {
+              color: "#f9fafb !important",
+            },
+          })
+
+          window.updateEpubTheme()
+
+          activeRendition.display()
+
+          activeBook.loaded.metadata.then((meta) => {
+            if (meta && meta.title) {
+              titleEl.textContent = meta.title
+            } else {
+              titleEl.textContent = "Digital Library Reader"
+            }
+          })
+
+          document.getElementById("reader-prev").onclick = () =>
+            activeRendition.prev()
+          document.getElementById("reader-next").onclick = () =>
+            activeRendition.next()
+          document.getElementById("reader-close").onclick = () => {
+            overlay.style.display = "none"
+            if (activeBook) activeBook.destroy()
+          }
+        } catch (err) {
+          titleEl.textContent = "Failed to load reader."
+        }
+      }
+
+      function fixLanguageSwitchLinks() {
+        const currentPath = window.location.pathname
+        const isCurrentlyNepali = currentPath.startsWith("/ne")
+
+        const links = document.querySelectorAll("a")
+        links.forEach((link) => {
+          const parentContainer = link.closest("div")
+          const parentText = parentContainer?.textContent || ""
+
+          if (
+            parentText.includes("Also available in") ||
+            parentText.includes("उपलब्ध छ")
+          ) {
+            if (isCurrentlyNepali) {
+              link.textContent = "English"
+            } else {
+              link.textContent = "Nepali"
+            }
+
+            const pathSegments = currentPath.split("/").filter(Boolean)
+            if (pathSegments.includes("media")) {
+              const mediaIdx = pathSegments.indexOf("media")
+              const currentSlug = pathSegments[mediaIdx + 1]
+
+              let targetUrl = ""
+              if (isCurrentlyNepali) {
+                const targetEn = currentSlug
+                  .replace(/-ne$/, "")
+                  .replace(/-1$/, "")
+                targetUrl = `/en/media/${targetEn}`
+              } else {
+                const baseSlug = currentSlug
+                  .replace(/-ne$/, "")
+                  .replace(/-1$/, "")
+                targetUrl = `/ne/media/${baseSlug}-ne`
+              }
+
+              // Check if translation page exists via HEAD request
+              fetch(targetUrl, { method: "HEAD" })
+                .then((res) => {
+                  if (!res.ok) {
+                    // Page does not exist -> Hide entire "Also available in" block
+                    if (parentContainer) parentContainer.style.display = "none"
+                  } else {
+                    if (parentContainer) parentContainer.style.display = ""
+                  }
+                })
+                .catch(() => {
+                  if (parentContainer) parentContainer.style.display = "none"
+                })
+
+              if (!link.dataset.clickIntercepted) {
+                link.dataset.clickIntercepted = "true"
+                link.addEventListener("click", (e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  window.location.href = targetUrl
+                })
+              }
+            } else {
+              if (!link.dataset.clickIntercepted) {
+                link.dataset.clickIntercepted = "true"
+                link.addEventListener("click", (e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  window.location.href = isCurrentlyNepali ? "/" : "/ne"
+                })
+              }
+            }
+          }
+        })
+      }
+
+      function removeArabicOption() {
+        // Remove from <option> elements in select dropdowns
+        const options = document.querySelectorAll("option")
+        options.forEach((opt) => {
+          const val = opt.value || ""
+          const text = opt.textContent.trim()
+          if (
+            val === "ar" ||
+            val.includes("/ar") ||
+            text === "Arabic" ||
+            text === "العربية"
+          ) {
+            opt.remove()
+          }
+        })
+
+        // Remove links or spans matching Arabic
+        const elements = document.querySelectorAll("a, span, div, li")
+        elements.forEach((el) => {
+          const text = el.textContent.trim()
+          const href = el.getAttribute("href") || ""
+          if (
+            (text === "Arabic" || text === "العربية") &&
+            el.children.length === 0
+          ) {
+            const wrapper = el.closest("li, div.shadow, div.rounded") || el
+            wrapper.style.display = "none"
+          } else if (href.includes("/ar/") || href.endsWith("/ar")) {
+            el.style.display = "none"
+          }
+        })
+      }
+
+      function fixCategoryShelfTitle() {
+        const isNepali = window.location.pathname.startsWith("/ne")
+        const elements = document.querySelectorAll(
+          "main a, main h2, main h3, main div, main span",
+        )
+        elements.forEach((el) => {
+          const text = el.textContent.trim()
+          if (
+            (text === "Read" ||
+              text === "पढ्नुहोस्" ||
+              text === "Share" ||
+              text === "शेयर गर्नुहोस्" ||
+              text === "Categories" ||
+              text === "वर्गहरू") &&
+            el.childNodes.length <= 2
+          ) {
+            const parentSection =
+              el.closest("section") ||
+              el.closest("div.flex")?.parentElement ||
+              el.parentElement
+            if (
+              parentSection &&
+              (parentSection.textContent.includes("Bible Studies") ||
+                parentSection.textContent.includes("Discipleship") ||
+                parentSection.textContent.includes("Children Books") ||
+                parentSection.textContent.includes("बाइबल अध्ययन") ||
+                parentSection.textContent.includes("चेलापन") ||
+                parentSection.textContent.includes("बाल पुस्तकहरू") ||
+                parentSection.querySelector("a[href*='category']"))
+            ) {
+              el.textContent = isNepali ? "वर्गहरू" : "Categories"
+            }
+          }
+        })
+      }
+
+      function addShareButton() {
+        const currentPath = window.location.pathname
+        if (!currentPath.includes("/media/")) {
+          const existingShare = document.getElementById(
+            "custom-title-share-btn",
+          )
+          if (existingShare) existingShare.remove()
+          return
+        }
+
+        const isNepali = currentPath.startsWith("/ne")
+        const mainContent = document.querySelector("main")
+        if (!mainContent) return
+
+        if (mainContent.querySelector("#custom-title-share-btn")) return
+
+        const heading = mainContent.querySelector("h1")
+        if (!heading) return
+
+        const shareText = isNepali ? "शेयर गर्नुहोस्" : "Share"
+        const shareWrapper = document.createElement("div")
+        shareWrapper.id = "custom-title-share-btn"
+        shareWrapper.className = "flex my-2"
+
+        shareWrapper.innerHTML = `
+          <button type="button" class="inline-flex items-center gap-2 text-base font-medium text-gray-800 hover:text-black dark:text-gray-200 dark:hover:text-white cursor-pointer border-0 bg-transparent p-0 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            <span>${shareText}</span>
+          </button>
+        `
+
+        const shareBtn = shareWrapper.querySelector("button")
+        shareBtn.onclick = async function (e) {
+          e.preventDefault()
+          const shareData = {
+            title: document.title,
+            url: window.location.href,
+          }
+          try {
+            if (navigator.share) {
+              await navigator.share(shareData)
+            } else {
+              await navigator.clipboard.writeText(window.location.href)
+              alert(
+                isNepali
+                  ? "लिंक क्लिपबोर्डमा प्रतिलिपि गरियो!"
+                  : "Link copied to clipboard!",
+              )
+            }
+          } catch (err) {
+            console.error("Error sharing:", err)
+          }
+        }
+
+        const parentCol = heading.parentElement
+        if (parentCol) {
+          const authorEl = Array.from(parentCol.children).find(
+            (child) => child !== heading && child.tagName !== "DIV",
+          )
+          if (authorEl) {
+            authorEl.insertAdjacentElement("afterend", shareWrapper)
+            return
+          }
+        }
+
+        heading.insertAdjacentElement("afterend", shareWrapper)
+      }
+
+      function customizeHeaderArea() {
+        const actionContainers = document.querySelectorAll(
+          "main div.flex, main div.flex.items-center, main div.flex.gap-2",
+        )
+        actionContainers.forEach((container) => {
+          const text = container.textContent || ""
+          if (
+            (text.includes("Edit") ||
+              text.includes("सम्पादन") ||
+              container.querySelector("a[href*='edit']")) &&
+            !container.querySelector("h1") &&
+            !container.closest("header")
+          ) {
+            const links = container.querySelectorAll("a, button, span")
+            links.forEach((el) => {
+              const t = el.textContent.trim().toLowerCase()
+              if (
+                t.includes("edit") ||
+                t.includes("सम्पादन") ||
+                el.querySelector("svg")
+              ) {
+                el.style.display = "none"
+              }
+            })
+          }
+        })
+      }
+
+      function updateActionButtons() {
+        const isNepali = window.location.pathname.startsWith("/ne")
+        const actionGroups = document.querySelectorAll(
+          "main div.flex.flex-wrap, main div.flex.items-center, main div.gap-2, main div.gap-4",
+        )
+
+        actionGroups.forEach((group) => {
+          if (
+            group.textContent.includes("नेपाली") ||
+            group.textContent.includes("English") ||
+            group.closest("h1") ||
+            group.querySelector("h1")
+          ) {
+            return
+          }
+
+          const buttons = group.querySelectorAll("a, button")
+          if (buttons.length >= 1) {
+            const primaryBtn = buttons[0]
+
+            if (
+              primaryBtn &&
+              !primaryBtn.querySelector("svg.lucide-chevron-down")
+            ) {
+              primaryBtn.textContent = isNepali ? "पढ्नुहोस्" : "Read"
+
+              const pdfLink = group.querySelector(
+                "a[href$='.pdf'], a[href*='.pdf']",
+              )
+              const epubLink = group.querySelector(
+                "a[href$='.epub'], a[href*='.epub']",
+              )
+
+              if (pdfLink) {
+                const pdfUrl = pdfLink.getAttribute("href")
+                if (primaryBtn.tagName === "BUTTON") {
+                  const newLink = document.createElement("a")
+                  newLink.className = primaryBtn.className
+                  newLink.innerHTML = primaryBtn.innerHTML
+                  newLink.href = pdfUrl
+                  newLink.target = "_blank"
+                  newLink.setAttribute("rel", "noopener noreferrer")
+                  primaryBtn.replaceWith(newLink)
+                } else {
+                  primaryBtn.setAttribute("href", pdfUrl)
+                  primaryBtn.setAttribute("target", "_blank")
+                  primaryBtn.setAttribute("rel", "noopener noreferrer")
+                }
+              } else if (epubLink) {
+                const epubUrl = epubLink.getAttribute("href")
+                primaryBtn.onclick = function (e) {
+                  e.preventDefault()
+                  openBuiltinReader(epubUrl)
+                }
+                if (primaryBtn.tagName === "A") {
+                  primaryBtn.setAttribute("href", "#")
+                }
+              }
+            }
+          }
+
+          const downloadMenuLinks = group.querySelectorAll("a")
+          let hasPdf = false
+          let hasEpub = false
+
+          downloadMenuLinks.forEach((link) => {
+            const href = link.getAttribute("href") || ""
+            if (href.toLowerCase().includes(".pdf")) hasPdf = true
+            if (href.toLowerCase().includes(".epub")) hasEpub = true
+          })
+
+          downloadMenuLinks.forEach((link) => {
+            const text = link.textContent.trim().toUpperCase()
+            if (text === "PDF" && !hasPdf) {
+              link.style.display = "none"
+            }
+            if (text === "EPUB" && !hasEpub) {
+              link.style.display = "none"
+            }
+          })
+        })
+      }
+
+      function initCustomizations() {
+        setupThemeToggle()
+        updateActionButtons()
+        addShareButton()
+        customizeHeaderArea()
+        fixLanguageSwitchLinks()
+        fixCategoryShelfTitle()
+        removeArabicOption()
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initCustomizations)
+      } else {
+        initCustomizations()
+      }
+
+      // Continuous DOM observer to catch dynamic react/astro elements rendering late
+      const observer = new MutationObserver(() => {
+        removeArabicOption()
+      })
+      observer.observe(document.body, { childList: true, subtree: true })
+
+      document.addEventListener("astro:page-load", initCustomizations)
+      document.addEventListener("astro:after-swap", initCustomizations)
+    </script>
   </body>
 </html>
