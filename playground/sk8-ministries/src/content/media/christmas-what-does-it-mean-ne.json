@@ -1,0 +1,16 @@
+{
+  "title": "क्रिसमस ? यसको अर्थ के हो ?",
+  "type": "book",
+  "language": "ne",
+  "image": "./images/screenshot-from-2026-10-15-13-09-23.webp",
+  "content": [
+    {
+      "type": "upload",
+      "url": "/files/ne-christmas-tract-2021-for-printing-1.pdf"
+    }
+  ],
+  "dateCreated": "2026-10-15",
+  "categories": [
+    "educational"
+  ]
+}
