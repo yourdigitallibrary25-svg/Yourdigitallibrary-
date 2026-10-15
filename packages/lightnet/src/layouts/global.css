@@ -26,41 +26,53 @@ li:has(a[href*="/about"]) {
 
 /* --- Dark Mode PDF Reader Styling --- */
 
-/* 1. Make the PDF viewer container, sidebar, and thumbnail background dark */
-html.dark #sidebarContainer,
-html.dark #sidebarContent,
-html.dark #thumbnailView,
+/* 1. Main PDF Viewer & Outer Containers */
 html.dark #viewerContainer,
 html.dark .pdfViewer,
 html.dark #inline-pdf-viewer,
 html.dark #inline-pdf-viewer > div {
-  background-color: #111827 !important;
-  border-color: #1f2937 !important;
+  background-color: #050505 !important;
+  border-color: #050505 !important;
 }
 
-/* 2. Style individual thumbnail boxes in the sidebar */
-html.dark .thumbnail {
-  background-color: #1f2937 !important;
-  border-color: #374151 !important;
-}
-
-/* 3. Keep book pages and illustrations in their original, natural colors */
-html.dark .canvasWrapper canvas,
-html.dark .page canvas,
-html.dark img,
-html.dark .pdf-embed-frame,
-html.dark iframe[src*=".pdf"],
-html.dark embed[type="application/pdf"],
-html.dark object[type="application/pdf"] {
-  filter: none !important;
-  mix-blend-mode: normal !important;
-}
-
-/* 4. Style the top toolbar and panels for dark mode */
+/* 2. Top Toolbar Styling */
 html.dark #toolbarContainer,
 html.dark .toolbar,
-html.dark .secondaryToolbar {
+html.dark .secondaryToolbar,
+html.dark #toolbarViewer {
   background-color: #1f2937 !important;
   color: #f3f4f6 !important;
   border-color: #374151 !important;
+}
+
+/* 3. Left Sidebar Container & Thumbnail Panel */
+html.dark #sidebarContainer,
+html.dark #sidebarContent,
+html.dark #thumbnailView {
+  background-color: #050505 !important;
+  border-color: #1f2937 !important;
+}
+
+/* 4. Thumbnail Cards inside Sidebar */
+html.dark .thumbnail,
+html.dark .thumbnailImage {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+}
+
+/* 5. PDF Book Pages (Dark Background & White Text) */
+html.dark .pdf-embed-frame,
+html.dark iframe[src*=".pdf"],
+html.dark embed[type="application/pdf"],
+html.dark object[type="application/pdf"],
+html.dark .canvasWrapper canvas,
+html.dark .page canvas {
+  filter: invert(0.93) hue-rotate(180deg) contrast(1.25) brightness(0.9) !important;
+  background-color: #050505 !important;
+}
+
+/* 6. Preserve original image/illustration colors */
+html.dark .page img,
+html.dark .canvasWrapper img {
+  filter: invert(1) hue-rotate(180deg) !important;
 }
