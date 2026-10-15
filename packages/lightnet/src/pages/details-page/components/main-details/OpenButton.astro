@@ -111,7 +111,7 @@ const readLabel = getOpenActionLabel()
       if (link.dataset.downloadHandled === "true") return
       link.dataset.downloadHandled = "true"
 
-      link.addEventListener("click", (e) => {
+      link.addEventListener("click", async (e) => {
         const fileUrl = link.getAttribute("href")
         if (!fileUrl) return
 
@@ -125,13 +125,35 @@ const readLabel = getOpenActionLabel()
           const filename =
             fileUrl.split("/").pop()?.split("?")[0] || "document.pdf"
 
-          const anchor = document.createElement("a")
-          anchor.href = fileUrl
-          anchor.setAttribute("download", filename)
-          anchor.style.display = "none"
-          document.body.appendChild(anchor)
-          anchor.click()
-          document.body.removeChild(anchor)
+          try {
+            // Force fetch the PDF content into memory
+            const response = await fetch(fileUrl, { mode: "cors" })
+            const blob = await response.blob()
+
+            // Force application/octet-stream to trick Safari into showing download prompt instead of inline viewer
+            const forcedBlob = new Blob([blob], {
+              type: "application/octet-stream",
+            })
+            const blobUrl = URL.createObjectURL(forcedBlob)
+
+            const anchor = document.createElement("a")
+            anchor.href = blobUrl
+            anchor.setAttribute("download", filename)
+            document.body.appendChild(anchor)
+            anchor.click()
+            document.body.removeChild(anchor)
+
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000)
+          } catch (err) {
+            // Fallback: If CORS blocks the fetch, open it directly as a forced download target
+            const fallbackAnchor = document.createElement("a")
+            fallbackAnchor.href = fileUrl
+            fallbackAnchor.setAttribute("download", filename)
+            fallbackAnchor.setAttribute("target", "_blank")
+            document.body.appendChild(fallbackAnchor)
+            fallbackAnchor.click()
+            document.body.removeChild(fallbackAnchor)
+          }
         }
       })
     })
