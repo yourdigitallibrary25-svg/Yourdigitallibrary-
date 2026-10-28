@@ -193,6 +193,14 @@ const { direction } = resolveLanguage(currentLocale)
         color: #ffffff !important;
       }
 
+      /* PDF Viewer & Reader Dark Mode Styling */
+      html.dark iframe,
+      html.dark embed,
+      html.dark object {
+        background-color: #0b0f19 !important;
+        filter: invert(1) hue-rotate(180deg) brightness(0.95);
+      }
+
       /* Header icons in dark mode */
       html.dark header a,
       html.dark header span,
@@ -487,6 +495,8 @@ const { direction } = resolveLanguage(currentLocale)
           "main a, main h2, main h3, main div, main span",
         )
         elements.forEach((el) => {
+          if (el.closest("#custom-title-share-btn")) return
+
           const text = el.textContent.trim()
           if (
             (text === "Read" ||
@@ -519,7 +529,12 @@ const { direction } = resolveLanguage(currentLocale)
 
       function addShareButton() {
         const currentPath = window.location.pathname
-        if (!currentPath.includes("/media/")) {
+
+        if (
+          !currentPath.includes("/media/") ||
+          currentPath.endsWith("/media") ||
+          currentPath.endsWith("/media/")
+        ) {
           const existingShare = document.getElementById(
             "custom-title-share-btn",
           )
@@ -531,58 +546,75 @@ const { direction } = resolveLanguage(currentLocale)
         const mainContent = document.querySelector("main")
         if (!mainContent) return
 
-        if (mainContent.querySelector("#custom-title-share-btn")) return
-
-        const heading = mainContent.querySelector("h1")
-        if (!heading) return
-
+        let shareWrapper = document.getElementById("custom-title-share-btn")
         const shareText = isNepali ? "शेयर गर्नुहोस्" : "Share"
-        const shareWrapper = document.createElement("div")
-        shareWrapper.id = "custom-title-share-btn"
-        shareWrapper.className = "flex my-2"
 
-        shareWrapper.innerHTML = `
-          <button type="button" class="inline-flex items-center gap-2 text-base font-medium text-gray-800 hover:text-black dark:text-gray-200 dark:hover:text-white cursor-pointer border-0 bg-transparent p-0 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            <span>${shareText}</span>
-          </button>
-        `
+        if (!shareWrapper) {
+          shareWrapper = document.createElement("div")
+          shareWrapper.id = "custom-title-share-btn"
+          shareWrapper.className = "flex my-2"
 
-        const shareBtn = shareWrapper.querySelector("button")
-        shareBtn.onclick = async function (e) {
-          e.preventDefault()
-          const shareData = {
-            title: document.title,
-            url: window.location.href,
-          }
-          try {
-            if (navigator.share) {
-              await navigator.share(shareData)
-            } else {
-              await navigator.clipboard.writeText(window.location.href)
-              alert(
-                isNepali
-                  ? "लिंक क्लिपबोर्डमा प्रतिलिपि गरियो!"
-                  : "Link copied to clipboard!",
-              )
+          shareWrapper.innerHTML = `
+            <button type="button" class="inline-flex items-center gap-2 text-base font-medium text-gray-800 hover:text-black dark:text-gray-200 dark:hover:text-white cursor-pointer border-0 bg-transparent p-0 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              <span class="share-label-text">${shareText}</span>
+            </button>
+          `
+
+          const shareBtn = shareWrapper.querySelector("button")
+          shareBtn.onclick = async function (e) {
+            e.preventDefault()
+            const shareData = {
+              title: document.title,
+              url: window.location.href,
             }
-          } catch (err) {
-            console.error("Error sharing:", err)
+            try {
+              if (navigator.share) {
+                await navigator.share(shareData)
+              } else {
+                await navigator.clipboard.writeText(window.location.href)
+                alert(
+                  isNepali
+                    ? "लिंक क्लिपबोर्डमा प्रतिलिपि गरियो!"
+                    : "Link copied to clipboard!",
+                )
+              }
+            } catch (err) {
+              console.error("Error sharing:", err)
+            }
+          }
+        } else {
+          const labelSpan = shareWrapper.querySelector(".share-label-text")
+          if (labelSpan) {
+            labelSpan.textContent = shareText
           }
         }
 
-        const parentCol = heading.parentElement
-        if (parentCol) {
-          const authorEl = Array.from(parentCol.children).find(
-            (child) => child !== heading && child.tagName !== "DIV",
-          )
-          if (authorEl) {
-            authorEl.insertAdjacentElement("afterend", shareWrapper)
+        /* Target the author element container directly where the arrow points */
+        const heading = mainContent.querySelector("h1")
+        if (!heading) return
+
+        const textContainer = heading.closest("div") || heading.parentElement
+        if (textContainer) {
+          /* Look for the author name container (usually right below the title heading) */
+          const authorDiv =
+            Array.from(textContainer.querySelectorAll("div, p, span")).find(
+              (el) =>
+                el.textContent.includes("बि. जे. हमिल्टन") ||
+                el.textContent.includes("Hamilton") ||
+                el.querySelector("svg") ||
+                el.classList.contains("flex"),
+            ) || heading.nextElementSibling
+
+          if (authorDiv && !authorDiv.contains(shareWrapper)) {
+            authorDiv.insertAdjacentElement("afterend", shareWrapper)
             return
           }
         }
 
-        heading.insertAdjacentElement("afterend", shareWrapper)
+        if (!heading.parentElement.contains(shareWrapper)) {
+          heading.insertAdjacentElement("afterend", shareWrapper)
+        }
       }
 
       function customizeHeaderArea() {
