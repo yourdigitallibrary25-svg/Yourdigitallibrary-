@@ -79,29 +79,6 @@ const { direction } = resolveLanguage(currentLocale)
     <ViewTransition />
 
     <style is:global>
-      /* Hide Arabic language option globally in selects and link blocks */
-      option[value*="ar"],
-      option[value="ar"],
-      a[href*="/ar/"],
-      a[href$="/ar"] {
-        display: none !important;
-      }
-
-      /* Force Footer Language Selector Dropdown to Open Upward */
-      footer div:has(> ul),
-      footer div:has(> div[role="menu"]),
-      footer .relative {
-        position: relative !important;
-      }
-      footer ul[role="menu"],
-      footer div:has(> a[href*="/en"]),
-      footer div:has(> a[href*="/ne"]) {
-        position: absolute !important;
-        bottom: 100% !important;
-        top: auto !important;
-        margin-bottom: 6px !important;
-      }
-
       /* Hide Admin Link / Icon Everywhere */
       header a[href*="admin"],
       header button:has(a[href*="admin"]),
@@ -214,6 +191,14 @@ const { direction } = resolveLanguage(currentLocale)
       html.dark main a[class*="rounded"]:hover *,
       html.dark main div[class*="rounded"]:hover * {
         color: #ffffff !important;
+      }
+
+      /* PDF Viewer & Reader Dark Mode Styling */
+      html.dark iframe,
+      html.dark embed,
+      html.dark object {
+        background-color: #0b0f19 !important;
+        filter: invert(1) hue-rotate(180deg) brightness(0.95);
       }
 
       /* Header icons in dark mode */
@@ -438,12 +423,11 @@ const { direction } = resolveLanguage(currentLocale)
 
         const links = document.querySelectorAll("a")
         links.forEach((link) => {
-          const parentContainer = link.closest("div")
-          const parentText = parentContainer?.textContent || ""
+          const parentText = link.closest("div")?.textContent || ""
 
           if (
             parentText.includes("Also available in") ||
-            parentText.includes("उपलब्ध छ")
+            parentTest.includes("उपलब्ध छ")
           ) {
             if (isCurrentlyNepali) {
               link.textContent = "English"
@@ -451,89 +435,57 @@ const { direction } = resolveLanguage(currentLocale)
               link.textContent = "Nepali"
             }
 
-            const pathSegments = currentPath.split("/").filter(Boolean)
-            if (pathSegments.includes("media")) {
-              const mediaIdx = pathSegments.indexOf("media")
-              const currentSlug = pathSegments[mediaIdx + 1]
+            if (!link.dataset.clickIntercepted) {
+              link.dataset.clickIntercepted = "true"
 
-              let targetUrl = ""
-              if (isCurrentlyNepali) {
-                const targetEn = currentSlug
-                  .replace(/-ne$/, "")
-                  .replace(/-1$/, "")
-                targetUrl = `/en/media/${targetEn}`
-              } else {
-                const baseSlug = currentSlug
-                  .replace(/-ne$/, "")
-                  .replace(/-1$/, "")
-                targetUrl = `/ne/media/${baseSlug}-ne`
-              }
+              link.addEventListener("click", (e) => {
+                e.preventDefault()
+                e.stopPropagation()
 
-              // Check if translation page exists via HEAD request
-              fetch(targetUrl, { method: "HEAD" })
-                .then((res) => {
-                  if (!res.ok) {
-                    // Page does not exist -> Hide entire "Also available in" block
-                    if (parentContainer) parentContainer.style.display = "none"
+                const pathSegments = currentPath.split("/").filter(Boolean)
+                if (pathSegments.includes("media")) {
+                  const mediaIdx = pathSegments.indexOf("media")
+                  const currentSlug = pathSegments[mediaIdx + 1]
+
+                  if (isCurrentlyNepali) {
+                    const targetEn = currentSlug
+                      .replace(/-ne$/, "")
+                      .replace(/-1$/, "")
+                    window.location.href = `/en/media/${targetEn}`
                   } else {
-                    if (parentContainer) parentContainer.style.display = ""
+                    const baseSlug = currentSlug
+                      .replace(/-ne$/, "")
+                      .replace(/-1$/, "")
+                    window.location.href = `/ne/media/${baseSlug}-ne`
                   }
-                })
-                .catch(() => {
-                  if (parentContainer) parentContainer.style.display = "none"
-                })
-
-              if (!link.dataset.clickIntercepted) {
-                link.dataset.clickIntercepted = "true"
-                link.addEventListener("click", (e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  window.location.href = targetUrl
-                })
-              }
-            } else {
-              if (!link.dataset.clickIntercepted) {
-                link.dataset.clickIntercepted = "true"
-                link.addEventListener("click", (e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
+                } else {
                   window.location.href = isCurrentlyNepali ? "/" : "/ne"
-                })
-              }
+                }
+              })
             }
           }
         })
       }
 
       function removeArabicOption() {
-        // Remove from <option> elements in select dropdowns
-        const options = document.querySelectorAll("option")
-        options.forEach((opt) => {
-          const val = opt.value || ""
-          const text = opt.textContent.trim()
-          if (
-            val === "ar" ||
-            val.includes("/ar") ||
-            text === "Arabic" ||
-            text === "العربية"
-          ) {
-            opt.remove()
-          }
-        })
-
-        // Remove links or spans matching Arabic
-        const elements = document.querySelectorAll("a, span, div, li")
+        const elements = document.querySelectorAll(
+          "footer a, footer button, footer li, div.relative a, div.relative button",
+        )
         elements.forEach((el) => {
           const text = el.textContent.trim()
           const href = el.getAttribute("href") || ""
           if (
-            (text === "Arabic" || text === "العربية") &&
-            el.children.length === 0
+            (text === "Arabic" ||
+              text === "العربية" ||
+              href.includes("/ar") ||
+              text.includes("Arabic")) &&
+            !el.closest("header")
           ) {
-            const wrapper = el.closest("li, div.shadow, div.rounded") || el
-            wrapper.style.display = "none"
-          } else if (href.includes("/ar/") || href.endsWith("/ar")) {
-            el.style.display = "none"
+            const targetItem =
+              el.closest("li") || el.closest("button") || el.closest("a") || el
+            if (targetItem && targetItem !== document.body) {
+              targetItem.style.display = "none"
+            }
           }
         })
       }
@@ -576,7 +528,13 @@ const { direction } = resolveLanguage(currentLocale)
 
       function addShareButton() {
         const currentPath = window.location.pathname
-        if (!currentPath.includes("/media/")) {
+
+        /* Only show the custom share button on individual media pages, NOT on search/listing pages */
+        if (
+          !currentPath.includes("/media/") ||
+          currentPath.endsWith("/media") ||
+          currentPath.endsWith("/media/")
+        ) {
           const existingShare = document.getElementById(
             "custom-title-share-btn",
           )
@@ -588,58 +546,56 @@ const { direction } = resolveLanguage(currentLocale)
         const mainContent = document.querySelector("main")
         if (!mainContent) return
 
-        if (mainContent.querySelector("#custom-title-share-btn")) return
+        let shareWrapper = document.getElementById("custom-title-share-btn")
+        if (!shareWrapper) {
+          shareWrapper = document.createElement("div")
+          shareWrapper.id = "custom-title-share-btn"
+          shareWrapper.className = "flex my-2"
 
-        const heading = mainContent.querySelector("h1")
-        if (!heading) return
+          shareWrapper.innerHTML = `
+            <button type="button" class="inline-flex items-center gap-2 text-base font-medium text-gray-800 hover:text-black dark:text-gray-200 dark:hover:text-white cursor-pointer border-0 bg-transparent p-0 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              <span>${isNepali ? "शेयर गर्नुहोस्" : "Share"}</span>
+            </button>
+          `
 
-        const shareText = isNepali ? "शेयर गर्नुहोस्" : "Share"
-        const shareWrapper = document.createElement("div")
-        shareWrapper.id = "custom-title-share-btn"
-        shareWrapper.className = "flex my-2"
-
-        shareWrapper.innerHTML = `
-          <button type="button" class="inline-flex items-center gap-2 text-base font-medium text-gray-800 hover:text-black dark:text-gray-200 dark:hover:text-white cursor-pointer border-0 bg-transparent p-0 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            <span>${shareText}</span>
-          </button>
-        `
-
-        const shareBtn = shareWrapper.querySelector("button")
-        shareBtn.onclick = async function (e) {
-          e.preventDefault()
-          const shareData = {
-            title: document.title,
-            url: window.location.href,
-          }
-          try {
-            if (navigator.share) {
-              await navigator.share(shareData)
-            } else {
-              await navigator.clipboard.writeText(window.location.href)
-              alert(
-                isNepali
-                  ? "लिंक क्लिपबोर्डमा प्रतिलिपि गरियो!"
-                  : "Link copied to clipboard!",
-              )
+          const shareBtn = shareWrapper.querySelector("button")
+          shareBtn.onclick = async function (e) {
+            e.preventDefault()
+            const shareData = {
+              title: document.title,
+              url: window.location.href,
             }
-          } catch (err) {
-            console.error("Error sharing:", err)
+            try {
+              if (navigator.share) {
+                await navigator.share(shareData)
+              } else {
+                await navigator.clipboard.writeText(window.location.href)
+                alert(
+                  isNepali
+                    ? "लिंक क्लिपबोर्डमा प्रतिलिपि गरियो!"
+                    : "Link copied to clipboard!",
+                )
+              }
+            } catch (err) {
+              console.error("Error sharing:", err)
+            }
           }
         }
 
-        const parentCol = heading.parentElement
-        if (parentCol) {
-          const authorEl = Array.from(parentCol.children).find(
-            (child) => child !== heading && child.tagName !== "DIV",
-          )
-          if (authorEl) {
-            authorEl.insertAdjacentElement("afterend", shareWrapper)
-            return
-          }
-        }
+        const actionGroup = Array.from(
+          mainContent.querySelectorAll("div"),
+        ).find(
+          (div) =>
+            div.querySelector("a, button") &&
+            (div.textContent.includes("Read") ||
+              div.textContent.includes("पढ्नुहोस्") ||
+              div.textContent.includes("Download")),
+        )
 
-        heading.insertAdjacentElement("afterend", shareWrapper)
+        if (actionGroup && !actionGroup.contains(shareWrapper)) {
+          actionGroup.insertAdjacentElement("beforebegin", shareWrapper)
+        }
       }
 
       function customizeHeaderArea() {
@@ -768,12 +724,6 @@ const { direction } = resolveLanguage(currentLocale)
       } else {
         initCustomizations()
       }
-
-      // Continuous DOM observer to catch dynamic react/astro elements rendering late
-      const observer = new MutationObserver(() => {
-        removeArabicOption()
-      })
-      observer.observe(document.body, { childList: true, subtree: true })
 
       document.addEventListener("astro:page-load", initCustomizations)
       document.addEventListener("astro:after-swap", initCustomizations)
