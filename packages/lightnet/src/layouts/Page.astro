@@ -381,6 +381,15 @@ const { direction } = resolveLanguage(currentLocale)
       }
 
       function setupThemeToggle() {
+        const path = window.location.pathname
+        // Detect if we are on the homepage (root paths)
+        const isHomePage =
+          path === "/" ||
+          path === "/en" ||
+          path === "/ne" ||
+          path === "/en/" ||
+          path === "/ne/"
+
         const sunIcons = document.querySelectorAll(
           "header svg.lucide-sun, header [aria-label*='light' i], header button:has(svg.lucide-sun)",
         )
@@ -390,7 +399,8 @@ const { direction } = resolveLanguage(currentLocale)
           btn.dataset.lightBound = "true"
           btn.addEventListener("click", (e) => {
             e.preventDefault()
-            setTheme("dark")
+            // On homepage, sun icon needs to trigger light mode explicitly
+            setTheme(isHomePage ? "light" : "light")
           })
         })
 
@@ -403,9 +413,47 @@ const { direction } = resolveLanguage(currentLocale)
           btn.dataset.darkBound = "true"
           btn.addEventListener("click", (e) => {
             e.preventDefault()
-            setTheme("light")
+            // On homepage, moon icon needs to trigger dark mode explicitly
+            setTheme(isHomePage ? "dark" : "dark")
           })
         })
+
+        // Additional safeguard for homepage button order swapping if query selectors match inversely
+        if (isHomePage) {
+          const allToggleButtons = document.querySelectorAll(
+            "header button:has(svg)",
+          )
+          if (allToggleButtons.length >= 2) {
+            const firstBtn = allToggleButtons[0]
+            const secondBtn = allToggleButtons[1]
+
+            if (
+              !firstBtn.dataset.homepageInverted &&
+              !secondBtn.dataset.homepageInverted
+            ) {
+              firstBtn.dataset.homepageInverted = "true"
+              secondBtn.dataset.homepageInverted = "true"
+
+              // Clear previous listeners by cloning or overriding onclick behavior
+              const newFirst = firstBtn.cloneNode(true)
+              const newSecond = secondBtn.cloneNode(true)
+              firstBtn.parentNode.replaceChild(newFirst, firstBtn)
+              secondBtn.parentNode.replaceChild(newSecond, secondBtn)
+
+              // First button in header = Sun/Light
+              newFirst.addEventListener("click", (e) => {
+                e.preventDefault()
+                setTheme("light")
+              })
+
+              // Second button in header = Moon/Dark
+              newSecond.addEventListener("click", (e) => {
+                e.preventDefault()
+                setTheme("dark")
+              })
+            }
+          }
+        }
       }
 
       let activeBook = null
@@ -850,10 +898,8 @@ const { direction } = resolveLanguage(currentLocale)
         })
       }
 
-      /* Runtime DOM injector targeting category links and cards directly */
       function fixCardSizes() {
         if (window.innerWidth <= 640) {
-          // 1. Fix Latest Books Cards
           const headings = document.querySelectorAll("main h2, main h3")
           headings.forEach((heading) => {
             const text = heading.textContent || ""
@@ -878,7 +924,6 @@ const { direction } = resolveLanguage(currentLocale)
             }
           })
 
-          // 2. Fix Categories Cards directly by locating category links and card wrappers anywhere in main
           const categoryLinks = document.querySelectorAll(
             "main a[href*='category'], main div[class*='category'], main article[class*='category']",
           )
@@ -892,7 +937,6 @@ const { direction } = resolveLanguage(currentLocale)
             targetEl.style.setProperty("height", "170px", "important")
             targetEl.style.setProperty("max-height", "170px", "important")
 
-            // Force internal image / background container heights down
             const childElements = targetEl.querySelectorAll("div, img")
             childElements.forEach((el) => {
               el.style.setProperty("height", "170px", "important")
@@ -922,7 +966,6 @@ const { direction } = resolveLanguage(currentLocale)
 
       document.addEventListener("astro:page-load", initCustomizations)
       document.addEventListener("astro:after-swap", initCustomizations)
-      window.addEventListener("resize", fixCardSizes)
     </script>
   </body>
 </html>
