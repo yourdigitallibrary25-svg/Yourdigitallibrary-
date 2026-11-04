@@ -15,11 +15,11 @@ export default defineConfig({
         ne: "तपाईंको डिजिटल पुस्तकालय",
         ar: "Your Digital Library",
       },
-      logo: { src: "./src/assets/OMlogo.svg" },
+      logo: { src: "./src/assets/yourdigitallibrary.svg" },
       disallowSearchIndexing: true,
       favicon: [
-        { href: "./src/assets/OMlogo.svg", sizes: "32x32" },
-        { href: "./src/assets/OMlogo.svg" },
+        { href: "./src/assets/yourdigitallibrary.svg", sizes: "32x32" },
+        { href: "./src/assets/yourdigitallibrary.svg" },
       ],
       searchPage: {
         filterByLocale: true,

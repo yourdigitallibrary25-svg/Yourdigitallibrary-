@@ -278,6 +278,45 @@ const { direction } = resolveLanguage(currentLocale)
         margin-bottom: 12px;
         color: #fff;
       }
+
+      /* Strict Mobile Safe Margins & Card Sizing Overrides */
+      @media (max-width: 640px) {
+        body {
+          overflow-x: hidden !important;
+        }
+
+        main {
+          padding-left: 1.25rem !important;
+          padding-right: 1.25rem !important;
+          box-sizing: border-box !important;
+          width: 100vw !important;
+          max-width: 100vw !important;
+        }
+
+        main section,
+        main div,
+        #open-button-container {
+          box-sizing: border-box !important;
+          max-width: 100% !important;
+        }
+
+        /* Latest Books Cards Sizing */
+        main section div.overflow-x-auto article,
+        main section div.overflow-x-auto li,
+        main section div.overflow-x-auto div[class*="w-"],
+        main section div.flex.overflow-x-auto > * {
+          width: 170px !important;
+          min-width: 170px !important;
+          max-width: 170px !important;
+          flex: 0 0 170px !important;
+        }
+
+        main section div.overflow-x-auto img {
+          width: 100% !important;
+          height: auto !important;
+          max-width: 100% !important;
+        }
+      }
     </style>
   </head>
   <body
@@ -328,14 +367,13 @@ const { direction } = resolveLanguage(currentLocale)
     </div>
 
     <script is:inline>
-      function toggleTheme() {
-        const isDark = document.documentElement.classList.contains("dark")
-        if (isDark) {
-          document.documentElement.classList.remove("dark")
-          localStorage.setItem("theme", "light")
-        } else {
+      function setTheme(mode) {
+        if (mode === "dark") {
           document.documentElement.classList.add("dark")
           localStorage.setItem("theme", "dark")
+        } else {
+          document.documentElement.classList.remove("dark")
+          localStorage.setItem("theme", "light")
         }
         if (window.updateEpubTheme) {
           window.updateEpubTheme()
@@ -343,18 +381,29 @@ const { direction } = resolveLanguage(currentLocale)
       }
 
       function setupThemeToggle() {
-        const themeIcons = document.querySelectorAll(
-          "header svg.lucide-sun, header svg.lucide-moon, header [aria-label*='theme' i], header [aria-label*='mode' i], header button:has(svg)",
+        const sunIcons = document.querySelectorAll(
+          "header svg.lucide-sun, header [aria-label*='light' i], header button:has(svg.lucide-sun)",
         )
-
-        themeIcons.forEach((icon) => {
+        sunIcons.forEach((icon) => {
           const btn = icon.closest("button") || icon.closest("a") || icon
-          if (!btn || btn.dataset.themeBound) return
-
-          btn.dataset.themeBound = "true"
+          if (!btn || btn.dataset.lightBound) return
+          btn.dataset.lightBound = "true"
           btn.addEventListener("click", (e) => {
             e.preventDefault()
-            toggleTheme()
+            setTheme("dark")
+          })
+        })
+
+        const moonIcons = document.querySelectorAll(
+          "header svg.lucide-moon, header [aria-label*='dark' i], header button:has(svg.lucide-moon)",
+        )
+        moonIcons.forEach((icon) => {
+          const btn = icon.closest("button") || icon.closest("a") || icon
+          if (!btn || btn.dataset.darkBound) return
+          btn.dataset.darkBound = "true"
+          btn.addEventListener("click", (e) => {
+            e.preventDefault()
+            setTheme("light")
           })
         })
       }
@@ -416,7 +465,6 @@ const { direction } = resolveLanguage(currentLocale)
           })
 
           window.updateEpubTheme()
-
           activeRendition.display()
 
           activeBook.loaded.metadata.then((meta) => {
@@ -567,10 +615,59 @@ const { direction } = resolveLanguage(currentLocale)
         })
       }
 
+      function addSliderArrowsToLatestBooks() {
+        const headings = document.querySelectorAll("main h2, main h3")
+        headings.forEach((heading) => {
+          const text = heading.textContent || ""
+          if (
+            (text.includes("Our books") || text.includes("हाम्रा पुस्तकहरू")) &&
+            !heading.querySelector(".slider-arrow-container")
+          ) {
+            const headerRow = heading.closest("div") || heading.parentElement
+            if (!headerRow) return
+
+            headerRow.style.display = "flex"
+            headerRow.style.justifyContent = "space-between"
+            headerRow.style.alignItems = "center"
+            headerRow.style.width = "100%"
+
+            const section =
+              heading.closest("section") || headerRow.parentElement
+            if (!section) return
+            const scrollContainer = section.querySelector(
+              "div.overflow-x-auto, div.flex.overflow-x-auto, ul",
+            )
+            if (!scrollContainer) return
+
+            const arrowWrapper = document.createElement("div")
+            arrowWrapper.className =
+              "slider-arrow-container flex items-center gap-2 ml-auto shrink-0"
+            arrowWrapper.innerHTML = `
+              <button type="button" class="scroll-left-btn flex h-9 w-9 items-center justify-center rounded-full bg-gray-800/10 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 hover:bg-gray-800/20 transition cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <button type="button" class="scroll-right-btn flex h-9 w-9 items-center justify-center rounded-full bg-gray-800/10 dark:bg-gray-700/50 text-gray-700 dark:text-gray-200 hover:bg-gray-800/20 transition cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            `
+
+            const leftBtn = arrowWrapper.querySelector(".scroll-left-btn")
+            const rightBtn = arrowWrapper.querySelector(".scroll-right-btn")
+
+            leftBtn.onclick = () => {
+              scrollContainer.scrollBy({ left: -300, behavior: "smooth" })
+            }
+            rightBtn.onclick = () => {
+              scrollContainer.scrollBy({ left: 300, behavior: "smooth" })
+            }
+
+            headerRow.appendChild(arrowWrapper)
+          }
+        })
+      }
+
       function addShareButton() {
         const currentPath = window.location.pathname
-
-        // Strictly verify it's an individual media page containing a valid item slug
         const pathSegments = currentPath.split("/").filter(Boolean)
         const mediaIndex = pathSegments.indexOf("media")
         const hasValidSlug =
@@ -753,6 +850,58 @@ const { direction } = resolveLanguage(currentLocale)
         })
       }
 
+      /* Runtime DOM injector targeting category links and cards directly */
+      function fixCardSizes() {
+        if (window.innerWidth <= 640) {
+          // 1. Fix Latest Books Cards
+          const headings = document.querySelectorAll("main h2, main h3")
+          headings.forEach((heading) => {
+            const text = heading.textContent || ""
+            if (
+              text.includes("Our books") ||
+              text.includes("हाम्रा पुस्तकहरू")
+            ) {
+              const section =
+                heading.closest("section") ||
+                heading.parentElement.parentElement
+              if (section) {
+                const bookCards = section.querySelectorAll(
+                  "article, li, div.overflow-x-auto > div > div, div.flex > div",
+                )
+                bookCards.forEach((card) => {
+                  card.style.setProperty("min-width", "165px", "important")
+                  card.style.setProperty("max-width", "165px", "important")
+                  card.style.setProperty("width", "165px", "important")
+                  card.style.setProperty("flex", "0 0 165px", "important")
+                })
+              }
+            }
+          })
+
+          // 2. Fix Categories Cards directly by locating category links and card wrappers anywhere in main
+          const categoryLinks = document.querySelectorAll(
+            "main a[href*='category'], main div[class*='category'], main article[class*='category']",
+          )
+          categoryLinks.forEach((card) => {
+            const targetEl =
+              card.closest("a") || card.closest("article") || card
+            targetEl.style.setProperty("min-width", "140px", "important")
+            targetEl.style.setProperty("max-width", "140px", "important")
+            targetEl.style.setProperty("width", "140px", "important")
+            targetEl.style.setProperty("flex", "0 0 140px", "important")
+            targetEl.style.setProperty("height", "170px", "important")
+            targetEl.style.setProperty("max-height", "170px", "important")
+
+            // Force internal image / background container heights down
+            const childElements = targetEl.querySelectorAll("div, img")
+            childElements.forEach((el) => {
+              el.style.setProperty("height", "170px", "important")
+              el.style.setProperty("max-height", "170px", "important")
+            })
+          })
+        }
+      }
+
       function initCustomizations() {
         setupThemeToggle()
         updateActionButtons()
@@ -760,7 +909,9 @@ const { direction } = resolveLanguage(currentLocale)
         customizeHeaderArea()
         fixLanguageSwitchLinks()
         fixCategoryShelfTitle()
+        addSliderArrowsToLatestBooks()
         removeArabicOption()
+        fixCardSizes()
       }
 
       if (document.readyState === "loading") {
@@ -771,6 +922,7 @@ const { direction } = resolveLanguage(currentLocale)
 
       document.addEventListener("astro:page-load", initCustomizations)
       document.addEventListener("astro:after-swap", initCustomizations)
+      window.addEventListener("resize", fixCardSizes)
     </script>
   </body>
 </html>

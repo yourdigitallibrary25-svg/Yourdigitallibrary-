@@ -1,1 +1,25 @@
-<svg width="1000" height="1000" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#a)"><rect width="1000" height="1000" rx="50" fill="#fff"/><path fill-rule="evenodd" clip-rule="evenodd" d="M125 75c-27.614 0-50 22.386-50 50v699.786l583.089-583.089c7.03-7.03 18.427-7.03 25.456 0l54.261 54.261c7.03 7.029 7.03 18.426 0 25.456L134.22 925H875c27.614 0 50-22.386 50-50V125c0-27.614-22.386-50-50-50H125Zm497.912 420.321c-43.19 13.289-66.806 59.165-52.965 102.523 13.871 43.106 59.913 67.443 103.104 54.155 43.051-13.428 66.806-59.164 52.851-102.409-5.509-17.636-16.528-32.088-30.648-42.055-20.238-14.757-46.817-20.072-72.315-12.181l-.027-.033Zm48.422 71.125c4.153 12.957-2.935 26.745-15.891 30.732-12.93 4.015-26.772-3.295-30.925-16.251-4.153-12.957 2.934-26.745 15.891-30.732 12.957-3.986 26.772 3.295 30.925 16.251Z" fill="url(#b)"/></g><defs><linearGradient id="b" x1="897" y1="98.923" x2="75" y2="934.345" gradientUnits="userSpaceOnUse"><stop stop-color="#2D03A4"/><stop offset="1" stop-color="#25212C"/></linearGradient><clipPath id="a"><path fill="#fff" d="M0 0h1000v1000H0z"/></clipPath></defs></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+  <!-- Off-white background -->
+  <rect width="600" height="600" fill="#FAF6E9" />
+
+  <!-- Outer Circular Ring -->
+  <circle cx="300" cy="300" r="235" fill="none" stroke="#E65100" stroke-width="28" />
+
+  <!-- MAIN ORANGE BOOK BODY -->
+  <!-- Left Inner Page -->
+  <path d="M 182 110 C 228 144 264 178 300 210 L 300 528 C 274 502 228 470 182 444 Z" fill="#E65100" />
+  
+  <!-- Right Inner Page -->
+  <path d="M 418 110 C 372 144 336 178 300 210 L 300 528 C 326 502 372 470 418 444 Z" fill="#E65100" />
+
+  <!-- LEFT OUTER COVER STRIP -->
+  <path d="M 148 160 L 168 160 L 168 448 C 216 474 258 506 288 538 L 270 552 C 234 518 186 482 148 456 Z" fill="#E65100" />
+
+  <!-- RIGHT OUTER COVER STRIP -->
+  <path d="M 452 160 L 432 160 L 432 448 C 384 474 342 506 312 538 L 330 552 C 366 518 414 482 452 456 Z" fill="#E65100" />
+
+  <!-- CROSS CUTOUT (Negative Space Overlay) -->
+  <path d="M 282 252 L 318 252 L 318 552 L 282 552 Z" fill="#FAF6E9" />
+  <rect x="246" y="308" width="108" height="40" fill="#FAF6E9" />
+</svg>
