@@ -448,9 +448,6 @@ const { direction } = resolveLanguage(currentLocale)
         const currentSlug =
           pathSegments[pathSegments.indexOf("media") + 1] || ""
 
-        // Hide condition:
-        // For Nepali section, hide if slug ends with -no-ne
-        // For English section, hide if slug ends with -no
         const isNoTranslation = isCurrentlyNepali
           ? currentSlug.endsWith("-no-ne")
           : currentSlug.endsWith("-no")
@@ -572,7 +569,14 @@ const { direction } = resolveLanguage(currentLocale)
 
       function addShareButton() {
         const currentPath = window.location.pathname
-        if (!currentPath.includes("/media/")) {
+
+        // Strictly verify it's an individual media page containing a valid item slug
+        const pathSegments = currentPath.split("/").filter(Boolean)
+        const mediaIndex = pathSegments.indexOf("media")
+        const hasValidSlug =
+          mediaIndex !== -1 && pathSegments.length > mediaIndex + 1
+
+        if (!hasValidSlug) {
           const existingShare = document.getElementById(
             "custom-title-share-btn",
           )
