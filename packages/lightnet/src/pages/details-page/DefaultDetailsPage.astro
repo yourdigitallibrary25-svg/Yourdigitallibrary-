@@ -16,23 +16,33 @@ const { mediaId } = Astro.props
 // 1. Fetch current media item details
 const item = await getMediaItem(mediaId)
 
-// 2. Identify current locale/language from route params or item data
-const currentLocale = Astro.params.locale || item?.data?.language || "en"
-const isEnglish = currentLocale === "en" || currentLocale.startsWith("en")
+// 2. Identify current locale/language and other languages selected in admin
+const currentLanguage = item?.data?.language || "en"
+const otherLanguages = item?.data?.otherLanguages || []
 
-// 3. Define target language button label and corresponding target URL route
-const alternateLabel = isEnglish ? "Nepali" : "English"
-const alternateLocale = isEnglish ? "ne" : "en"
-
-// 4. Thoroughly strip file extensions and ALL trailing language suffixes (-en / -ne) recursively
-let cleanBaseId = mediaId.replace(/\.[^/.]+$/, "")
-while (cleanBaseId.endsWith("-en") || cleanBaseId.endsWith("-ne")) {
-  cleanBaseId = cleanBaseId.slice(0, -3)
+// 3. Map language codes to readable labels
+const languageLabels: Record<string, string> = {
+  en: "English",
+  ne: "Nepali",
+  hi: "Hindi",
+  bo: "Tibetan",
 }
 
-// 5. Build the exact target slug cleanly
-const alternateSlug = `${cleanBaseId}-${alternateLocale}`
-const targetUrl = `/${alternateLocale}/media/${alternateSlug}`
+// 4. Filter out any accidental selection of the primary content language
+const filteredOtherLanguages = otherLanguages.filter(
+  (lang: string) => lang !== currentLanguage,
+)
+
+// 5. Thoroughly strip file extensions and ALL trailing language suffixes recursively
+let cleanBaseId = mediaId.replace(/\.[^/.]+$/, "")
+while (
+  cleanBaseId.endsWith("-en") ||
+  cleanBaseId.endsWith("-ne") ||
+  cleanBaseId.endsWith("-hi") ||
+  cleanBaseId.endsWith("-bo")
+) {
+  cleanBaseId = cleanBaseId.slice(0, -3)
+}
 ---
 
 <DetailsPage mediaId={mediaId}>
@@ -40,6 +50,37 @@ const targetUrl = `/${alternateLocale}/media/${alternateSlug}`
     <div id="open-button-container" class="mt-8">
       <OpenButton mediaId={mediaId} />
     </div>
+
+    {
+      /* Also available in section - Appears ONLY if otherLanguages are checked, hides completely if empty */
+    }
+    {
+      filteredOtherLanguages.length > 0 && (
+        <div class="mt-6 flex flex-wrap items-center gap-2 text-gray-700 dark:text-gray-300">
+          <span class="text-sm font-semibold">
+            {currentLanguage === "ne"
+              ? "यसमा पनि उपलब्ध छ:"
+              : "Also available in:"}
+          </span>
+
+          <div class="flex flex-wrap gap-2">
+            {filteredOtherLanguages.map((lang: string) => {
+              const targetSlug = `${cleanBaseId}-${lang}`
+              const targetUrl = `/${lang}/media/${targetSlug}`
+
+              return (
+                <a
+                  href={targetUrl}
+                  class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm transition-all hover:bg-gray-200 hover:text-gray-950 active:scale-95 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
+                >
+                  {languageLabels[lang] || lang}
+                </a>
+              )
+            })}
+          </div>
+        </div>
+      )
+    }
 
     {
       /* Full-Page Overlay Reader Container with Absolute Pitch-Black Background */
@@ -69,18 +110,6 @@ const targetUrl = `/${alternateLocale}/media/${alternateSlug}`
           style="background-color: #050505 !important;"
           title="Book Reader"></iframe>
       </div>
-    </div>
-
-    {/* Also available in section */}
-    <div class="mt-4 flex items-center gap-2 text-gray-700 dark:text-gray-300">
-      <span class="text-base font-bold">Also available in:</span>
-
-      <a
-        href={targetUrl}
-        class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm transition-all hover:bg-gray-200 hover:text-gray-950 active:scale-95 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white"
-      >
-        {alternateLabel}
-      </a>
     </div>
   </MainDetailsSection>
 

@@ -2,11 +2,14 @@
   "title": "येशूलाई पछ्याउनुः वास्तविक चेलापनका विशेषताहरू",
   "type": "book",
   "language": "ne",
+  "otherLanguages": [
+    "en"
+  ],
   "image": "./images/screenshot-from-2026-10-28-15-33-19.webp",
   "content": [
     {
       "type": "upload",
-      "url": "/files/c0305_ne_following-jesus_core_2026_04_28_digital.pdf"
+      "url": "/files/following-jesus-ne.pdf"
     }
   ],
   "dateCreated": "2026-10-28",

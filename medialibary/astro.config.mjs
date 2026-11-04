@@ -33,7 +33,7 @@ export default defineConfig({
        *
        * TODO: Update with your site's logo file path, or remove this field if no logo is needed.
        */
-      logo: { src: "./src/assets/OMlogo.svg" },
+      logo: { src: "./src/assets/yourdigitallibrarylogo.svg" },
 
       /**
        * Defines the supported languages for the site, covering both

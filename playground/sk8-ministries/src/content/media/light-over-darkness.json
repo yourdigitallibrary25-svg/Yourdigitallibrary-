@@ -2,15 +2,14 @@
   "title": "Light over darkness",
   "type": "book",
   "language": "en",
+  "otherLanguages": [
+    "ne"
+  ],
   "image": "./images/screenshot-from-2026-10-07-15-34-00.webp",
   "content": [
     {
       "type": "upload",
-      "url": "/files/20201016-tihar-tract-english.pdf"
-    },
-    {
-      "type": "upload",
-      "url": "/files/20201016-tihar-tract-english.epub"
+      "url": "/files/light-over-darkness-en.pdf"
     }
   ],
   "dateCreated": "2026-10-07",

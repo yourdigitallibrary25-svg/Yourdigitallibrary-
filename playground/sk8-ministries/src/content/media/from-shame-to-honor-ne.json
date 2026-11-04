@@ -2,18 +2,14 @@
   "title": "शर्म देखि आदरतिर",
   "type": "book",
   "language": "ne",
-  "image": "./images/screenshot-from-2026-10-14-15-18-14-1.webp",
+  "image": "./images/screenshot-from-2026-10-30-14-30-29.webp",
   "content": [
     {
       "type": "upload",
-      "url": "/files/c0066_ne_from_shame_to_honor_2025_01_02_print.pdf"
-    },
-    {
-      "type": "upload",
-      "url": "/files/c0066_ne_from_shame_to_honor_2025_01_02_print.epub"
+      "url": "/files/Shame-to-honour.pdf"
     }
   ],
-  "dateCreated": "2026-10-15",
+  "dateCreated": "2026-10-30",
   "categories": [
     "educational"
   ],

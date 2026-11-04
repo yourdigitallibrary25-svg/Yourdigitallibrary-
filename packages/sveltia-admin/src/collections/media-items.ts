@@ -42,6 +42,20 @@ export const mediaItemCollection: Collection = {
     },
     languagesSelect(),
     {
+      name: "otherLanguages",
+      label: "Other Languages",
+      widget: "select",
+      multiple: true,
+      required: false,
+      hint: "Select other languages in which this media item is available.",
+      options: [
+        { label: "English", value: "en" },
+        { label: "Nepali", value: "ne" },
+        { label: "Hindi", value: "hi" },
+        { label: "Tibetan", value: "bo" },
+      ],
+    },
+    {
       name: "image",
       label: "Image",
       widget: "image",
@@ -128,7 +142,7 @@ export const mediaItemCollection: Collection = {
       default: [],
       widget: "list",
       summary: "{{fields.name}}",
-      hint: "Add the author names in the content language.",
+      hint: "Author names.",
       field: { label: "Name", name: "name", widget: "string" },
     },
     adminConfig.experimental.showCommonIdField && {

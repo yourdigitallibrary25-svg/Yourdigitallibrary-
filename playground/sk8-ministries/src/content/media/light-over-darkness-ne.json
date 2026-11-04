@@ -2,15 +2,14 @@
   "title": "अन्धकार माथि ज्योति",
   "type": "book",
   "language": "ne",
+  "otherLanguages": [
+    "en"
+  ],
   "image": "./images/screenshot-from-2026-10-07-15-40-27.webp",
   "content": [
     {
       "type": "upload",
-      "url": "/files/20201016-tihar-tract-nepali.pdf"
-    },
-    {
-      "type": "upload",
-      "url": "/files/20201016-tihar-tract-nepali.epub"
+      "url": "/files/light-over-darkness-ne.pdf"
     }
   ],
   "dateCreated": "2026-10-07",

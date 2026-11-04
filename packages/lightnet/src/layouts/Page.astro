@@ -79,6 +79,29 @@ const { direction } = resolveLanguage(currentLocale)
     <ViewTransition />
 
     <style is:global>
+      /* Hide Arabic language option globally in selects and link blocks */
+      option[value*="ar"],
+      option[value="ar"],
+      a[href*="/ar/"],
+      a[href$="/ar"] {
+        display: none !important;
+      }
+
+      /* Force Footer Language Selector Dropdown to Open Upward */
+      footer div:has(> ul),
+      footer div:has(> div[role="menu"]),
+      footer .relative {
+        position: relative !important;
+      }
+      footer ul[role="menu"],
+      footer div:has(> a[href*="/en"]),
+      footer div:has(> a[href*="/ne"]) {
+        position: absolute !important;
+        bottom: 100% !important;
+        top: auto !important;
+        margin-bottom: 6px !important;
+      }
+
       /* Hide Admin Link / Icon Everywhere */
       header a[href*="admin"],
       header button:has(a[href*="admin"]),
@@ -421,46 +444,57 @@ const { direction } = resolveLanguage(currentLocale)
         const currentPath = window.location.pathname
         const isCurrentlyNepali = currentPath.startsWith("/ne")
 
-        const links = document.querySelectorAll("a")
-        links.forEach((link) => {
-          const parentText = link.closest("div")?.textContent || ""
+        const pathSegments = currentPath.split("/").filter(Boolean)
+        const currentSlug =
+          pathSegments[pathSegments.indexOf("media") + 1] || ""
 
+        // Hide condition:
+        // For Nepali section, hide if slug ends with -no-ne
+        // For English section, hide if slug ends with -no
+        const isNoTranslation = isCurrentlyNepali
+          ? currentSlug.endsWith("-no-ne")
+          : currentSlug.endsWith("-no")
+
+        const candidateDivs = document.querySelectorAll("main div")
+        candidateDivs.forEach((div) => {
+          const text = div.textContent || ""
           if (
-            parentText.includes("Also available in") ||
-            parentText.includes("उपलब्ध छ")
+            (text.includes("Also available in") || text.includes("उपलब्ध छ")) &&
+            div.children.length <= 3 &&
+            !div.querySelector("h1") &&
+            !div.querySelector("h2")
           ) {
+            const link = div.querySelector("a")
+
+            if (isNoTranslation || !link) {
+              div.style.display = "none"
+              return
+            }
+
+            div.style.display = ""
+            link.textContent = isCurrentlyNepali ? "English" : "Nepali"
+
+            let targetUrl = ""
             if (isCurrentlyNepali) {
-              link.textContent = "English"
+              const targetEn = currentSlug
+                .replace(/-no-ne$/, "")
+                .replace(/-ne$/, "")
+                .replace(/-1$/, "")
+              targetUrl = `/en/media/${targetEn}`
             } else {
-              link.textContent = "Nepali"
+              const baseSlug = currentSlug
+                .replace(/-no$/, "")
+                .replace(/-en$/, "")
+                .replace(/-1$/, "")
+              targetUrl = `/ne/media/${baseSlug}-ne`
             }
 
             if (!link.dataset.clickIntercepted) {
               link.dataset.clickIntercepted = "true"
-
               link.addEventListener("click", (e) => {
                 e.preventDefault()
                 e.stopPropagation()
-
-                const pathSegments = currentPath.split("/").filter(Boolean)
-                if (pathSegments.includes("media")) {
-                  const mediaIdx = pathSegments.indexOf("media")
-                  const currentSlug = pathSegments[mediaIdx + 1]
-
-                  if (isCurrentlyNepali) {
-                    const targetEn = currentSlug
-                      .replace(/-ne$/, "")
-                      .replace(/-1$/, "")
-                    window.location.href = `/en/media/${targetEn}`
-                  } else {
-                    const baseSlug = currentSlug
-                      .replace(/-ne$/, "")
-                      .replace(/-1$/, "")
-                    window.location.href = `/ne/media/${baseSlug}-ne`
-                  }
-                } else {
-                  window.location.href = isCurrentlyNepali ? "/" : "/ne"
-                }
+                window.location.href = targetUrl
               })
             }
           }
@@ -468,23 +502,32 @@ const { direction } = resolveLanguage(currentLocale)
       }
 
       function removeArabicOption() {
+        const options = document.querySelectorAll("option")
+        options.forEach((opt) => {
+          const val = opt.value || ""
+          const text = opt.textContent.trim()
+          if (
+            val === "ar" ||
+            val.includes("/ar") ||
+            text === "Arabic" ||
+            text === "العربية"
+          ) {
+            opt.remove()
+          }
+        })
+
         const elements = document.querySelectorAll("a, span, div, li")
         elements.forEach((el) => {
           const text = el.textContent.trim()
           const href = el.getAttribute("href") || ""
           if (
-            text === "Arabic" ||
-            text === "العربية" ||
-            href.includes("/ar/") ||
-            href.endsWith("/ar")
+            (text === "Arabic" || text === "العربية") &&
+            el.children.length === 0
           ) {
-            const cardWrapper =
-              el.closest("div.shadow, div.rounded, div.border, ul, li") ||
-              el.closest("div") ||
-              el
-            if (cardWrapper && cardWrapper !== document.body) {
-              cardWrapper.style.display = "none"
-            }
+            const wrapper = el.closest("li, div.shadow, div.rounded") || el
+            wrapper.style.display = "none"
+          } else if (href.includes("/ar/") || href.endsWith("/ar")) {
+            el.style.display = "none"
           }
         })
       }
@@ -529,12 +572,7 @@ const { direction } = resolveLanguage(currentLocale)
 
       function addShareButton() {
         const currentPath = window.location.pathname
-
-        if (
-          !currentPath.includes("/media/") ||
-          currentPath.endsWith("/media") ||
-          currentPath.endsWith("/media/")
-        ) {
+        if (!currentPath.includes("/media/")) {
           const existingShare = document.getElementById(
             "custom-title-share-btn",
           )
@@ -546,75 +584,58 @@ const { direction } = resolveLanguage(currentLocale)
         const mainContent = document.querySelector("main")
         if (!mainContent) return
 
-        let shareWrapper = document.getElementById("custom-title-share-btn")
-        const shareText = isNepali ? "शेयर गर्नुहोस्" : "Share"
+        if (mainContent.querySelector("#custom-title-share-btn")) return
 
-        if (!shareWrapper) {
-          shareWrapper = document.createElement("div")
-          shareWrapper.id = "custom-title-share-btn"
-          shareWrapper.className = "flex my-2"
-
-          shareWrapper.innerHTML = `
-            <button type="button" class="inline-flex items-center gap-2 text-base font-medium text-gray-800 hover:text-black dark:text-gray-200 dark:hover:text-white cursor-pointer border-0 bg-transparent p-0 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-              <span class="share-label-text">${shareText}</span>
-            </button>
-          `
-
-          const shareBtn = shareWrapper.querySelector("button")
-          shareBtn.onclick = async function (e) {
-            e.preventDefault()
-            const shareData = {
-              title: document.title,
-              url: window.location.href,
-            }
-            try {
-              if (navigator.share) {
-                await navigator.share(shareData)
-              } else {
-                await navigator.clipboard.writeText(window.location.href)
-                alert(
-                  isNepali
-                    ? "लिंक क्लिपबोर्डमा प्रतिलिपि गरियो!"
-                    : "Link copied to clipboard!",
-                )
-              }
-            } catch (err) {
-              console.error("Error sharing:", err)
-            }
-          }
-        } else {
-          const labelSpan = shareWrapper.querySelector(".share-label-text")
-          if (labelSpan) {
-            labelSpan.textContent = shareText
-          }
-        }
-
-        /* Target the author element container directly where the arrow points */
         const heading = mainContent.querySelector("h1")
         if (!heading) return
 
-        const textContainer = heading.closest("div") || heading.parentElement
-        if (textContainer) {
-          /* Look for the author name container (usually right below the title heading) */
-          const authorDiv =
-            Array.from(textContainer.querySelectorAll("div, p, span")).find(
-              (el) =>
-                el.textContent.includes("बि. जे. हमिल्टन") ||
-                el.textContent.includes("Hamilton") ||
-                el.querySelector("svg") ||
-                el.classList.contains("flex"),
-            ) || heading.nextElementSibling
+        const shareText = isNepali ? "शेयर गर्नुहोस्" : "Share"
+        const shareWrapper = document.createElement("div")
+        shareWrapper.id = "custom-title-share-btn"
+        shareWrapper.className = "flex my-2"
 
-          if (authorDiv && !authorDiv.contains(shareWrapper)) {
-            authorDiv.insertAdjacentElement("afterend", shareWrapper)
+        shareWrapper.innerHTML = `
+          <button type="button" class="inline-flex items-center gap-2 text-base font-medium text-gray-800 hover:text-black dark:text-gray-200 dark:hover:text-white cursor-pointer border-0 bg-transparent p-0 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            <span>${shareText}</span>
+          </button>
+        `
+
+        const shareBtn = shareWrapper.querySelector("button")
+        shareBtn.onclick = async function (e) {
+          e.preventDefault()
+          const shareData = {
+            title: document.title,
+            url: window.location.href,
+          }
+          try {
+            if (navigator.share) {
+              await navigator.share(shareData)
+            } else {
+              await navigator.clipboard.writeText(window.location.href)
+              alert(
+                isNepali
+                  ? "लिंक क्लिपबोर्डमा प्रतिलिपि गरियो!"
+                  : "Link copied to clipboard!",
+              )
+            }
+          } catch (err) {
+            console.error("Error sharing:", err)
+          }
+        }
+
+        const parentCol = heading.parentElement
+        if (parentCol) {
+          const authorEl = Array.from(parentCol.children).find(
+            (child) => child !== heading && child.tagName !== "DIV",
+          )
+          if (authorEl) {
+            authorEl.insertAdjacentElement("afterend", shareWrapper)
             return
           }
         }
 
-        if (!heading.parentElement.contains(shareWrapper)) {
-          heading.insertAdjacentElement("afterend", shareWrapper)
-        }
+        heading.insertAdjacentElement("afterend", shareWrapper)
       }
 
       function customizeHeaderArea() {

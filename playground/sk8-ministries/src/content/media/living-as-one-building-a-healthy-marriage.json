@@ -2,15 +2,14 @@
   "title": "Living as One Building a Healthy Marriage",
   "type": "book",
   "language": "en",
+  "otherLanguages": [
+    "ne"
+  ],
   "image": "./images/screenshot-from-2026-09-23-13-58-25.webp",
   "content": [
     {
       "type": "upload",
-      "url": "/files/c0215_en_living-as-one-building-a-healthy-marriage_2024_11_1.epub"
-    },
-    {
-      "type": "upload",
-      "url": "/files/c0215_en_living-as-one-building-a-healthy-marriage_2024_11_1.pdf"
+      "url": "/files/living-as-one-building-a-healthy-marriage-en.pdf"
     }
   ],
   "dateCreated": "2026-09-23",

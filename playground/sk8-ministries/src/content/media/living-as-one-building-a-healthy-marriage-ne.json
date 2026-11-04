@@ -2,15 +2,14 @@
   "title": "एक भई जिउनुु स्वस्थ विवााहकोो निर्मााण",
   "type": "book",
   "language": "ne",
+  "otherLanguages": [
+    "en"
+  ],
   "image": "./images/screenshot-from-2026-09-22-15-59-27.webp",
   "content": [
     {
       "type": "upload",
-      "url": "/files/c0216_ne_living-as-one-building-a-healthy-marriage_2024_11_1.pdf"
-    },
-    {
-      "type": "upload",
-      "url": "/files/c0216_ne_living-as-one-building-a-healthy-marriage_2024_11_1.epub"
+      "url": "/files/living-as-one-building-a-healthy-marriage-ne.pdf"
     }
   ],
   "dateCreated": "2026-09-22",

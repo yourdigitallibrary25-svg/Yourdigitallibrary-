@@ -2,11 +2,14 @@
   "title": "Following Jesus: Characteristics of authentic discipleship",
   "type": "book",
   "language": "en",
+  "otherLanguages": [
+    "ne"
+  ],
   "image": "./images/screenshot-from-2026-10-28-15-03-45.webp",
   "content": [
     {
       "type": "upload",
-      "url": "/files/en-following-jesus-pdf.pdf"
+      "url": "/files/following-jesus-en.pdf"
     }
   ],
   "dateCreated": "2026-10-28",
