@@ -10,7 +10,7 @@ All keys have been translated. ✅
 
 All keys have been translated. ✅
 
-## **DE** ([ne.yml](./ne.yml))
+## **DE** ([de.yml](./de.yml))
 
 All keys have been translated. ✅
 
@@ -38,11 +38,19 @@ All keys have been translated. ✅
 
 All keys have been translated. ✅
 
+## **NE** ([ne.yml](./ne.yml))
+
+All keys have been translated. ✅
+
 ## **PT** ([pt.yml](./pt.yml))
 
 All keys have been translated. ✅
 
 ## **RU** ([ru.yml](./ru.yml))
+
+All keys have been translated. ✅
+
+## **SW** ([sw.yml](./sw.yml))
 
 All keys have been translated. ✅
 
